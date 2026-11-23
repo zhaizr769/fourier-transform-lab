@@ -160,4 +160,17 @@
   /* 生成一组等间距 x 网格 */
   UI.grid = function (a, b, n) { return global.FT.linspace(a, b, n); };
 
+  /* 简单数学公式渲染：把 _{} ^{} 转换为 HTML 上下标 */
+  UI.renderMath = function (text) {
+    if (!text) return '';
+    // 替换 _{...} 为 <sub>...</sub>
+    text = String(text).replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
+    // 替换 ^{...} 为 <sup>...</sup>
+    text = text.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+    // 替换单个 _x 和 ^x（如果后面没有 {）
+    text = text.replace(/_([a-zA-Z0-9])/g, '<sub>$1</sub>');
+    text = text.replace(/\^([a-zA-Z0-9])/g, '<sup>$1</sup>');
+    return text;
+  };
+
 })(window);

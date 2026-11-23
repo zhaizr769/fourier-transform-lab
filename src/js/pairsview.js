@@ -36,7 +36,7 @@
     var tr = UI.el('tr');
     var tdT = UI.el('td');
     var btn = UI.el('button', { class: 'siglink', title: '点我在实验台打开', text: '' });
-    btn.textContent = sig.formulaT;
+    btn.innerHTML = UI.renderMath(sig.formulaT);
     btn.addEventListener('click', function () {
       FT.Lab.pick(sig.id);
       FT.UI.go('lab');
@@ -47,11 +47,11 @@
     tr.appendChild(tdT);
 
     var tdX = UI.el('td');
-    tdX.textContent = sig.formulaX;
+    tdX.innerHTML = UI.renderMath(sig.formulaX);
     tr.appendChild(tdX);
 
     var tdA = UI.el('td');
-    tdA.textContent = sig.formulaA || '—';
+    tdA.innerHTML = sig.formulaA ? UI.renderMath(sig.formulaA) : '<span class="hint">—</span>';
     tr.appendChild(tdA);
 
     if (showSpark) {
@@ -91,7 +91,7 @@
        '2π Σ_{k=-∞}^{+∞} a_k δ(ω-kω₀)',
        'a_k'].map(function (f) {
         var td = UI.el('td');
-        td.textContent = f;
+        td.innerHTML = UI.renderMath(f);
         head.appendChild(td);
       });
       if (showSpark) { head.appendChild(UI.el('td')); head.appendChild(UI.el('td')); }

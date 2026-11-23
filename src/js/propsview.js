@@ -84,7 +84,7 @@
     top.appendChild(UI.el('span', { class: 'prop-en', text: op.en }));
     card.appendChild(top);
 
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: op.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(op.formula) }));
     if (op.quote) card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + op.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: op.desc || '' }));
 
@@ -181,7 +181,7 @@
     top.appendChild(UI.el('span', { class: 'prop-name', text: e.name }));
     top.appendChild(UI.el('span', { class: 'prop-en', text: e.en }));
     card.appendChild(top);
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: e.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(e.formula) }));
     card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + e.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: e.desc }));
     var foot = UI.el('div', { class: 'prop-foot' });

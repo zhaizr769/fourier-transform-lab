@@ -440,9 +440,9 @@
     var tag = document.getElementById('formulaTag');
 
     var tExpr = res.tExpr, xExpr = res.xExpr;
-    // 直接显示文本，不使用 MML 渲染
-    main.innerHTML = '<span class="mx">y(t) = ' + escapeHtml(tExpr) + '</span>' +
-      '<span class="arrow">⟷</span><span class="mx">Y(jω) = ' + escapeHtml(xExpr) + '</span>';
+    // 使用 UI.renderMath 渲染公式，支持上下标
+    main.innerHTML = '<span class="mx">y(t) = ' + UI.renderMath(escapeHtml(tExpr)) + '</span>' +
+      '<span class="arrow"></span><span class="mx">Y(jω) = ' + UI.renderMath(escapeHtml(xExpr)) + '</span>';
     tag.textContent = st.chain.length ? st.chain.map(function (c) { return FT.propById(c.id).name; }).join(' → ') : '未加变换';
 
     if (st.chain.length) {

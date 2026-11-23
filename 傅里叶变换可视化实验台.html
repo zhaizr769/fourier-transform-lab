@@ -3012,6 +3012,19 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* 生成一组等间距 x 网格 */
   UI.grid = function (a, b, n) { return global.FT.linspace(a, b, n); };
 
+  /* 简单数学公式渲染：把 _{} ^{} 转换为 HTML 上下标 */
+  UI.renderMath = function (text) {
+    if (!text) return '';
+    // 替换 _{...} 为 <sub>...</sub>
+    text = String(text).replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
+    // 替换 ^{...} 为 <sup>...</sup>
+    text = text.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+    // 替换单个 _x 和 ^x（如果后面没有 {）
+    text = text.replace(/_([a-zA-Z0-9])/g, '<sub>$1</sub>');
+    text = text.replace(/\^([a-zA-Z0-9])/g, '<sup>$1</sup>');
+    return text;
+  };
+
 })(window);
 
 
@@ -3458,9 +3471,9 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tag = document.getElementById('formulaTag');
 
     var tExpr = res.tExpr, xExpr = res.xExpr;
-    // 直接显示文本，不使用 MML 渲染
-    main.innerHTML = '<span class="mx">y(t) = ' + escapeHtml(tExpr) + '</span>' +
-      '<span class="arrow">⟷</span><span class="mx">Y(jω) = ' + escapeHtml(xExpr) + '</span>';
+    // 使用 UI.renderMath 渲染公式，支持上下标
+    main.innerHTML = '<span class="mx">y(t) = ' + UI.renderMath(escapeHtml(tExpr)) + '</span>' +
+      '<span class="arrow"></span><span class="mx">Y(jω) = ' + UI.renderMath(escapeHtml(xExpr)) + '</span>';
     tag.textContent = st.chain.length ? st.chain.map(function (c) { return FT.propById(c.id).name; }).join(' → ') : '未加变换';
 
     if (st.chain.length) {
@@ -3830,7 +3843,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-en', text: op.en }));
     card.appendChild(top);
 
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: op.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(op.formula) }));
     if (op.quote) card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + op.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: op.desc || '' }));
 
@@ -3927,7 +3940,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-name', text: e.name }));
     top.appendChild(UI.el('span', { class: 'prop-en', text: e.en }));
     card.appendChild(top);
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: e.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(e.formula) }));
     card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + e.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: e.desc }));
     var foot = UI.el('div', { class: 'prop-foot' });
@@ -3991,7 +4004,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tr = UI.el('tr');
     var tdT = UI.el('td');
     var btn = UI.el('button', { class: 'siglink', title: '点我在实验台打开', text: '' });
-    btn.textContent = sig.formulaT;
+    btn.innerHTML = UI.renderMath(sig.formulaT);
     btn.addEventListener('click', function () {
       FT.Lab.pick(sig.id);
       FT.UI.go('lab');
@@ -4002,11 +4015,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     tr.appendChild(tdT);
 
     var tdX = UI.el('td');
-    tdX.textContent = sig.formulaX;
+    tdX.innerHTML = UI.renderMath(sig.formulaX);
     tr.appendChild(tdX);
 
     var tdA = UI.el('td');
-    tdA.textContent = sig.formulaA || '—';
+    tdA.innerHTML = sig.formulaA ? UI.renderMath(sig.formulaA) : '<span class="hint">—</span>';
     tr.appendChild(tdA);
 
     if (showSpark) {
@@ -4046,7 +4059,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
        '2π Σ_{k=-∞}^{+∞} a_k δ(ω-kω₀)',
        'a_k'].map(function (f) {
         var td = UI.el('td');
-        td.textContent = f;
+        td.innerHTML = UI.renderMath(f);
         head.appendChild(td);
       });
       if (showSpark) { head.appendChild(UI.el('td')); head.appendChild(UI.el('td')); }
