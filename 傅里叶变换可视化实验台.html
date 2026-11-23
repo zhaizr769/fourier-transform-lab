@@ -3476,16 +3476,16 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tag = document.getElementById('formulaTag');
 
     var tExpr = res.tExpr, xExpr = res.xExpr;
-    // 使用 UI.renderMath 渲染公式，支持上下标
-    main.innerHTML = '<span class="mx">y(t) = ' + UI.renderMath(escapeHtml(tExpr)) + '</span>' +
-      '<span class="arrow"></span><span class="mx">Y(jω) = ' + UI.renderMath(escapeHtml(xExpr)) + '</span>';
+    // 使用 UI.renderMath 渲染公式，支持上下标（renderMath 已经处理了转义）
+    main.innerHTML = '<span class="mx">y(t) = ' + UI.renderMath(tExpr) + '</span>' +
+      '<span class="arrow"></span><span class="mx">Y(jω) = ' + UI.renderMath(xExpr) + '</span>';
     tag.textContent = st.chain.length ? st.chain.map(function (c) { return FT.propById(c.id).name; }).join(' → ') : '未加变换';
 
     if (st.chain.length) {
       rule.innerHTML = st.chain.map(function (c, i) {
         var op = FT.propById(c.id);
         var pv = Object.keys(c.params).map(function (k) { return k + '=' + UI.trim(c.params[k]); }).join(', ');
-        return '<span class="chainf">' + (i + 1) + '. ' + escapeHtml(op.formula) + (pv ? ' <span class="hint">（' + pv + '）</span>' : '') + '</span>';
+        return '<span class="chainf">' + (i + 1) + '. ' + UI.renderMath(op.formula) + (pv ? ' <span class="hint">（' + pv + '）</span>' : '') + '</span>';
       }).join('');
     } else {
       rule.innerHTML = '<span class="hint">在左边「性质变换」里点一个性质，看时域与频谱同时怎么变。</span>';
