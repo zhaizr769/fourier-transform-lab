@@ -534,9 +534,11 @@
   /* --------------------------------------------------------------- 界面 */
   function renderSigPicker() {
     var host = document.getElementById('sigGroups');
+    console.log('[Lab] renderSigPicker: host element=', host ? 'found' : 'NOT FOUND');
     UI.clear(host);
     var list = FT.signalList();
     console.log('[Lab] renderSigPicker: found', list.length, 'signals');
+    console.log('[Lab] renderSigPicker: first signal=', list[0] ? list[0].id : 'none');
     FT.SIGGROUPS.forEach(function (grp) {
       var items = list.filter(function (s) { return s.group === grp.id; });
       if (!items.length) return;
@@ -557,7 +559,7 @@
       host.appendChild(box);
     });
     document.getElementById('sigCountHint').textContent = list.length + ' 个可选';
-    console.log('[Lab] renderSigPicker: done');
+    console.log('[Lab] renderSigPicker: done, chips created');
   }
 
   function pickSignal(id) {

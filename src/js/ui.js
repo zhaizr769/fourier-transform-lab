@@ -76,7 +76,9 @@
 
   /* -------------------------------------------------------------- 芯片 */
   UI.chip = function (text, mx, active, onClick, wide) {
+    console.log('[UI] chip: creating chip for', text, 'onClick=', typeof onClick);
     var b = UI.el('button', { class: 'chip' + (active ? ' active' : '') + (wide ? ' chip-wide' : ''), type: 'button', onclick: onClick });
+    console.log('[UI] chip: button created, has click listener');
     b.appendChild(UI.el('span', { class: 'chip-name', text: text }));
     if (mx) {
       // mx 已经是纯文本，直接显示

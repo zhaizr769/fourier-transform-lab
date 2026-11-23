@@ -2928,7 +2928,9 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
   /* -------------------------------------------------------------- 芯片 */
   UI.chip = function (text, mx, active, onClick, wide) {
+    console.log('[UI] chip: creating chip for', text, 'onClick=', typeof onClick);
     var b = UI.el('button', { class: 'chip' + (active ? ' active' : '') + (wide ? ' chip-wide' : ''), type: 'button', onclick: onClick });
+    console.log('[UI] chip: button created, has click listener');
     b.appendChild(UI.el('span', { class: 'chip-name', text: text }));
     if (mx) {
       // mx 已经是纯文本，直接显示
@@ -3565,9 +3567,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 界面 */
   function renderSigPicker() {
     var host = document.getElementById('sigGroups');
+    console.log('[Lab] renderSigPicker: host element=', host ? 'found' : 'NOT FOUND');
     UI.clear(host);
     var list = FT.signalList();
     console.log('[Lab] renderSigPicker: found', list.length, 'signals');
+    console.log('[Lab] renderSigPicker: first signal=', list[0] ? list[0].id : 'none');
     FT.SIGGROUPS.forEach(function (grp) {
       var items = list.filter(function (s) { return s.group === grp.id; });
       if (!items.length) return;
@@ -3588,7 +3592,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       host.appendChild(box);
     });
     document.getElementById('sigCountHint').textContent = list.length + ' 个可选';
-    console.log('[Lab] renderSigPicker: done');
+    console.log('[Lab] renderSigPicker: done, chips created');
   }
 
   function pickSignal(id) {
