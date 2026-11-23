@@ -3795,14 +3795,14 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       formula: 'x₁(t)x₂(t)  (1/2π)[X₁(jω)*X₂(jω)]',
       quote: '通信传输的基础。',
       desc: '和卷积性质正好对偶，注意前面那个 1/2π。时域相乘 = 频谱搬移/混叠，调制、解调、采样定理都建立在这一条上。',
-      link: 'mod'
+      link: 'lab'  // 相乘性质在实验台中通过频移+叠加实现
     },
     {
       id: 'parseval', name: '帕塞瓦尔定理', en: 'Parseval', sec: '4.3.8',
       formula: '∫_{-∞}^{+∞}|x(t)|²dt = (1/2π)∫_{-∞}^{+∞}|X(jω)|²dω',
       quote: '自然定律，能量守恒。',
       desc: '时域能量等于频域能量除以 2π。它给了「频谱密度」一个物理单位，也是噪声带宽、3 dB 带宽这些工程概念的依据。',
-      link: 'topics'
+      link: 'lab'  // 帕塞瓦尔定理可在实验台通过能量计算验证
     },
     {
       id: 'sym', name: '共轭对称性', en: 'Conjugate Symmetry', sec: '4.3.3',
