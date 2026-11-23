@@ -3388,6 +3388,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   }
 
   function drawAll() {
+    console.log('[Lab] drawAll: lastRender=', lastRender ? 'ok' : 'null');
+    if (!lastRender) {
+      console.warn('[Lab] drawAll: lastRender is null, skipping');
+      return;
+    }
     var r = lastRender, d = r.derived, o = Lab.state.opts;
     var wAx = freqAxis(r);
     var xLabel = o.hz ? 'f (Hz)' : 'ω (rad/s)';
@@ -3512,7 +3517,9 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 计算 */
   Lab.recompute = function () {
     var st = Lab.state, o = st.opts;
+    console.log('[Lab] recompute: sigId=', st.sigId);
     var base = buildBase(st);
+    console.log('[Lab] recompute: base=', base ? 'ok' : 'null');
     if (!base) return;
     if (base.error) {
       var e = document.getElementById('customErr');
@@ -3525,6 +3532,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var res = st.chain.length ? applyChain(base, st.chain) : {
       layer: base, tExpr: base.meta.formulaT, xExpr: base.meta.formulaX, steps: [], reconstruct: false
     };
+    console.log('[Lab] recompute: res.layer=', res.layer ? 'ok' : 'null');
 
     var opts = {
       tmin: -o.tmax, tmax: o.tmax, Nt: NT,
@@ -3533,6 +3541,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       reconstructTime: res.reconstruct
     };
     var r = FT.render(res.layer, opts);
+    console.log('[Lab] recompute: render result t.len=', r.t.length, 'w.len=', r.w.length);
     r.opts = o;
     r.meta = res.layer.meta;
     r.marks = (base.meta && base.meta.marks) || [];
@@ -3558,6 +3567,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var host = document.getElementById('sigGroups');
     UI.clear(host);
     var list = FT.signalList();
+    console.log('[Lab] renderSigPicker: found', list.length, 'signals');
     FT.SIGGROUPS.forEach(function (grp) {
       var items = list.filter(function (s) { return s.group === grp.id; });
       if (!items.length) return;
@@ -3565,9 +3575,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       box.appendChild(UI.el('div', { class: 'glabel', text: grp.label }));
       var cg = UI.el('div', { class: 'chip-grid' });
       items.forEach(function (s) {
-        cg.appendChild(UI.chip(s.name, s.formulaT, Lab.state.sigId === s.id, function () {
+        var chip = UI.chip(s.name, s.formulaT, Lab.state.sigId === s.id, function () {
+          console.log('[Lab] Signal clicked:', s.id);
           pickSignal(s.id);
-        }));
+        });
+        cg.appendChild(chip);
       });
       if (grp.id === 'custom') {
         cg.appendChild(UI.chip('打开表达式面板', 'x(t)=…', false, function () { UI.openDrawer(); }));
@@ -3576,11 +3588,14 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       host.appendChild(box);
     });
     document.getElementById('sigCountHint').textContent = list.length + ' 个可选';
+    console.log('[Lab] renderSigPicker: done');
   }
 
   function pickSignal(id) {
+    console.log('[Lab] pickSignal called with id:', id);
     Lab.state.sigId = id;
     var sig = FT.getSignal(id);
+    console.log('[Lab] pickSignal: got signal', sig ? sig.name : 'null');
     if (sig && !sig.custom) {
       Lab.state.params = FT.defaultParams(sig);
       if (sig.window) {
@@ -3721,6 +3736,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
   /* ------------------------------------------------------------- 初始化 */
   Lab.init = function () {
+    console.log('[Lab] init: starting');
     installCompose();
     var saved = UI.load();
     if (saved && saved.sigId) {
@@ -3731,6 +3747,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       Object.assign(Lab.state.custom, saved.custom || {});
     }
     var sig = FT.getSignal(Lab.state.sigId);
+    console.log('[Lab] init: current sigId=', Lab.state.sigId, 'sig=', sig ? sig.name : 'null');
     if (!sig) Lab.state.sigId = 'exp1s';
     Lab.state.params = Lab.state.params || {};
     (FT.getSignal(Lab.state.sigId).params || []).forEach(function (d) {
@@ -3741,13 +3758,16 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     charts.mag = new Chart(document.getElementById('chMag'), document.getElementById('roMag'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
     charts.phase = new Chart(document.getElementById('chPhase'), document.getElementById('roPhase'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
     charts.extra = new Chart(document.getElementById('chExtra'), document.getElementById('roExtra'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
+    console.log('[Lab] init: charts created');
 
     renderSigPicker();
     renderParamRows();
     renderPropChips();
     bindStatic();
     syncRangeSliders();
+    console.log('[Lab] init: calling recompute');
     Lab.recompute();
+    console.log('[Lab] init: done');
   };
 
   Lab.pick = pickSignal;
