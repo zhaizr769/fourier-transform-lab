@@ -2018,10 +2018,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 时移 */
   PROP.shift = {
     id: 'shift', name: '时移', en: 'Time Shifting', sec: '4.3.2', short: '时移 t₀',
-    formula: 'x(t-t_{0})\\;\\longleftrightarrow\\;e^{-j\\omega t_{0}}X(j\\omega)',
+    formula: 'x(t-t₀) ⟷ e^{-jωt₀}X(jω)',
     quote: '任世间纷扰，幅度谱不变，只相位移动。',
     desc: '延时不改变任何频率分量的强度，只让每个分量按自己的频率多滞后一个相位 ωt₀。合成起来，相位谱整体倾斜。',
-    params: [{ key: 't0', label: 't_{0}', min: -6, max: 6, step: 0.1, def: 1.5, desc: '延时（>0 右移）' }],
+    params: [{ key: 't0', label: 't₀', min: -6, max: 6, step: 0.1, def: 1.5, desc: '延时（>0 右移）' }],
     apply: function (L, p) {
       var t0 = p.t0;
       return FT.makeLayer(
@@ -2034,7 +2034,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
             return { w: q.w, re: q.re * e[0] - q.im * e[1], im: q.re * e[1] + q.im * e[0] };
           });
         },
-        { opName: '时移', opFormula: 'e^{-j\\omega t_{0}}X(j\\omega)', note: '幅度谱 |X(jω)| 与原来完全重合，只有相位谱变化。' }
+        { opName: '时移', opFormula: 'e^{-jωt₀}X(jω)', note: '幅度谱 |X(jω)| 与原来完全重合，只有相位谱变化。' }
       );
     }
   };
@@ -2042,10 +2042,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 频移 */
   PROP.freqshift = {
     id: 'freqshift', name: '频移', en: 'Frequency Shifting', sec: '4.3.6', short: '频移 ω₀',
-    formula: 'e^{j\\omega_{0}t}x(t)\\;\\longleftrightarrow\\;X[j(\\omega-\\omega_{0})]',
+    formula: 'e^{jω₀t}x(t) ⟷ X[j(ω-ω₀)]',
     quote: '把整个频谱平移，形状一点不变。',
     desc: '时域乘一个复指数，频谱整体右移 ω₀。调制、混频、采样全都靠它。注意时域信号变成复信号了。',
-    params: [{ key: 'w0', label: '\\omega_{0}', min: -10, max: 10, step: 0.1, def: 4, desc: '搬移量' }],
+    params: [{ key: 'w0', label: 'ω₀', min: -10, max: 10, step: 0.1, def: 4, desc: '搬移量' }],
     apply: function (L, p) {
       var w0 = p.w0;
       return FT.makeLayer(
@@ -2064,7 +2064,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
             return { w: q.w + w0, re: q.re, im: q.im };
           }).filter(function (q) { return Math.abs(q.w) <= W; });
         },
-        { opName: '频移', opFormula: 'X[j(\\omega-\\omega_{0})]', note: '频谱平移 ω₀，包络形状不变；时域乘 e^{jω₀t} 后一般是复信号，虚部也要看。' }
+        { opName: '频移', opFormula: 'X[j(ω-ω₀)]', note: '频谱平移 ω₀，包络形状不变；时域乘 e^{jω₀t} 后一般是复信号，虚部也要看。' }
       );
     }
   };
@@ -2072,7 +2072,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 反转 */
   PROP.reverse = {
     id: 'reverse', name: '时间反转', en: 'Time Reversal', sec: '4.3.5', short: '反转 t→−t',
-    formula: 'x(-t)\\;\\longleftrightarrow\\;X(-j\\omega)',
+    formula: 'x(-t)  X(-jω)',
     quote: '时间倒着走，频谱也倒着看。',
     desc: '时域左右翻转 ⟺ 频域左右翻转。对实信号而言 X(−jω)=X*(jω)，所以幅度谱不变、相位谱反号。',
     params: [],
@@ -2082,7 +2082,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
         function (w, o) { L.Xfn(-w, o); },
         mapImp(L.timp, function (q) { return { t: -q.t, re: q.re, im: q.im, order: q.order || 0 }; }),
         function (W) { return mapImp(L.wimp(W), function (q) { return { w: -q.w, re: q.re, im: q.im }; }); },
-        { opName: '时间反转', opFormula: 'X(-j\\omega)=X^{*}(j\\omega)\\ (实信号)', note: '实信号反转后幅度谱不变、相位谱反号；若原信号本身是偶的，则完全不变。' }
+        { opName: '时间反转', opFormula: 'X*(-jω) (实信号)', note: '实信号反转后幅度谱不变、相位谱反号；若原信号本身是偶的，则完全不变。' }
       );
     }
   };
@@ -2090,7 +2090,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 展缩 */
   PROP.scale = {
     id: 'scale', name: '尺度变换', en: 'Scaling', sec: '4.3.5', short: '展缩 x(at)',
-    formula: 'x(at)\\;\\longleftrightarrow\\;\\frac{1}{|a|}X\\left(j\\frac{\\omega}{a}\\right)',
+    formula: 'x(at)  (1/|a|)X(jω/a)',
     quote: '同根同源，相互制约。',
     desc: '时域压缩 a>1 ⟺ 频域扩展且幅度按 1/|a| 压低。时宽与带宽的乘积大致守恒 —— 这是不确定性原理在信号里的样子。',
     params: [{ key: 'a', label: 'a', min: 0.2, max: 5, step: 0.05, def: 2, desc: '>1 时域压缩' }],
@@ -2104,7 +2104,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           return mapImp(L.wimp(W * A + 1), function (q) { return { w: a * q.w, re: q.re, im: q.im }; })
             .filter(function (q) { return Math.abs(q.w) <= W; });
         },
-        { opName: '尺度变换', opFormula: '\\frac{1}{|a|}X\\left(j\\frac{\\omega}{a}\\right)', note: '别忘了 1/|a| 这个幅度补偿因子：时域压得越窄，频谱摊得越开、峰值越低。' }
+        { opName: '尺度变换', opFormula: '(1/|a|)X(jω/a)', note: '别忘了 1/|a| 这个幅度补偿因子：时域压得越窄，频谱摊得越开、峰值越低。' }
       );
     }
   };
@@ -2112,7 +2112,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 共轭 */
   PROP.conj = {
     id: 'conj', name: '共轭', en: 'Conjugation', sec: '4.3.3', short: '共轭 x*(t)',
-    formula: 'x^{*}(t)\\;\\longleftrightarrow\\;X^{*}(-j\\omega)',
+    formula: 'x*(t)  X*(-jω)',
     quote: '从现在开始，变身。',
     desc: '取共轭 ⟺ 频谱既共轭又反转。实信号取共轭当然不变，于是得到 X(jω)=X*(−jω)：实部偶、虚部奇、模偶、相位奇。',
     params: [],
@@ -2122,7 +2122,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
         function (w, o) { L.Xfn(-w, o); o[1] = -o[1]; },
         mapImp(L.timp, function (q) { return { t: q.t, re: q.re, im: -q.im, order: q.order || 0 }; }),
         function (W) { return mapImp(L.wimp(W), function (q) { return { w: -q.w, re: q.re, im: -q.im }; }); },
-        { opName: '共轭', opFormula: 'X^{*}(-j\\omega)', note: '对实信号这一操作等于什么都没做 —— 而这恰恰证明了频谱的共轭对称性。' }
+        { opName: '共轭', opFormula: 'X*(-jω)', note: '对实信号这一操作等于什么都没做 —— 而这恰恰证明了频谱的共对称性。' }
       );
     }
   };
@@ -2130,7 +2130,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 微分 */
   PROP.diff = {
     id: 'diff', name: '时域微分', en: 'Differentiation', sec: '4.3.4', short: '微分 dx/dt',
-    formula: '\\frac{d}{dt}x(t)\\;\\longleftrightarrow\\;j\\omega\\,X(j\\omega)',
+    formula: 'dx(t)/dt  jωX(jω)',
     quote: '简化计算的一把好手。',
     desc: '微分 = 频域乘 jω：幅度按 |ω| 提升、相位加 π/2·sgn(ω)。高频被放大，所以微分器放大噪声；间断点变成冲激。',
     params: [],
@@ -2146,7 +2146,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           });
         },
         {
-          opName: '时域微分', opFormula: 'j\\omega\\,X(j\\omega)', reconstruct: true,
+          opName: '时域微分', opFormula: 'jωX(jω)', reconstruct: true,
           note: '幅度谱乘 |ω| 后高频段翘起；相位谱整体加 π/2（ω<0 处减 π/2）。间断点处导数是冲激，所以波形由频谱逆变换重建，尖峰两侧的 ringing 属正常。'
         }
       );
@@ -2156,7 +2156,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 积分 */
   PROP.integ = {
     id: 'integ', name: '时域积分', en: 'Integration', sec: '4.3.4', short: '积分 ∫x dτ',
-    formula: '\\int_{-\\infty}^{t}x(\\tau)\\,d\\tau\\;\\longleftrightarrow\\;\\frac{1}{j\\omega}X(j\\omega)+\\pi X(0)\\delta(\\omega)',
+    formula: '∫_{-∞}^{t}x(τ)dτ  (1/jω)X(jω) + πX(0)δ(ω)',
     quote: '低频通过、高频压制 —— 就是低通。',
     desc: '积分 = 频域除 jω，再补一个直流冲激 πX(0)δ(ω)。X(0)=∫x(t)dt 是频谱在零频的值，漏掉这一项是这门课最经典的错误。',
     params: [],
@@ -2186,7 +2186,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           return cap(out);
         },
         {
-          opName: '时域积分', opFormula: '\\frac{1}{j\\omega}X(j\\omega)+\\pi X(0)\\delta(\\omega)', reconstruct: true,
+          opName: '时域积分', opFormula: '(1/jω)X(jω)+πX(0)δ(ω)', reconstruct: true,
           note: '幅度谱按 1/|ω| 压低高频；ω=0 处出现 πX(0) 这根直流谱线（X(0)=∫x(t)dt，就是时域面积）。波形由频谱逆变换重建。' +
             (hasDcLine ? ' 原信号含直流谱线，积分后它会变成随时间增长的斜坡，图中无法用冲激表示，已略去。' : '')
         }
@@ -2197,7 +2197,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* ------------------------------------------------------------ 频域微分 */
   PROP.fdiff = {
     id: 'fdiff', name: '频域微分', en: 'Frequency Differentiation', sec: '4.3.6', short: '频域微分 t·x',
-    formula: 't\\,x(t)\\;\\longleftrightarrow\\;j\\frac{d}{d\\omega}X(j\\omega)',
+    formula: 't·x(t)  j·dX(jω)/dω',
     quote: '乘个 t，等价于对频率求导。',
     desc: '时域乘 t ⟺ 频域求导再乘 j。求导会放大频谱的起伏，所以 Sa 型频谱的导数在主瓣边缘最陡。',
     params: [],
@@ -2214,7 +2214,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
         [],
         function (W) { return []; },
         {
-          opName: '频域微分', opFormula: 'j\\frac{d}{d\\omega}X(j\\omega)',
+          opName: '频域微分', opFormula: 'j·dX(jω)/dω',
           note: '时域是精确的 t·x(t)；频谱用中心差分对 X(jω) 求导。冲激谱线求导会变成冲激偶，这里不画谱线。'
         }
       );
@@ -2224,7 +2224,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* --------------------------------------------------------------- 对偶 */
   PROP.dual = {
     id: 'dual', name: '对偶性', en: 'Duality', sec: '4.3.7', short: '对偶',
-    formula: 'x_{1}(t)\\longleftrightarrow X_{1}(j\\omega)\\ \\Rightarrow\\ x_{2}(t)=X_{1}(jt)\\longleftrightarrow X_{2}(j\\omega)=2\\pi x_{1}(-\\omega)',
+    formula: 'x₁(t)  X₁(jω) ⇒ x₂(t)=X₁(jt)  X₂(jω)=2πx₁(-ω)',
     quote: '武林秘籍中的万金油。',
     desc: '若 x₁(t) ↔ X₁(jω)，则把 X₁ 的表达式中的 ω 换成 t 作为新信号 x₂(t)，它的频谱就是 2πx₁(−ω)。门 ↔ Sa、Sa ↔ 门、冲激串 ↔ 冲激串，全靠它一次推完。',
     params: [],
@@ -2242,7 +2242,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           }).filter(function (q) { return Math.abs(q.w) <= W; });
         },
         {
-          opName: '对偶性', opFormula: 'X(jt)\\longleftrightarrow 2\\pi x(-\\omega)',
+          opName: '对偶性', opFormula: 'X(jt)  2πx(-ω)',
           note: '对偶把「时域矩形 ⟷ 频域 Sa」和「时域 Sa ⟷ 频域矩形」看成同一件事的两面。带冲激谱线的信号对偶后变成时域冲激串。'
         }
       );
@@ -2252,10 +2252,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* ------------------------------------------------------- 调制（乘 cos） */
   PROP.modulate = {
     id: 'modulate', name: '幅度调制', en: 'Multiplication by cos', sec: '4.5', short: '乘 cos ω₀t',
-    formula: 'x(t)\\cos \\omega_{0}t\\;\\longleftrightarrow\\;\\frac{1}{2}[X(j(\\omega-\\omega_{0}))+X(j(\\omega+\\omega_{0}))]',
+    formula: 'x(t)cos(ω₀t)  (1/2)[X(j(ω-ω₀))+X(j(ω+ω₀))]',
     quote: '通信传输的基础。',
     desc: '相乘性质最常用的一次：载波把频谱复制成两份搬到 ±ω₀，每份幅度减半。ω₀ 太小两份会叠在一起 —— 那就是频谱混叠。',
-    params: [{ key: 'w0', label: '\\omega_{0}', min: 0.5, max: 14, step: 0.1, def: 5, desc: '载波角频率' }],
+    params: [{ key: 'w0', label: 'ω₀', min: 0.5, max: 14, step: 0.1, def: 5, desc: '载波角频率' }],
     apply: function (L, p) {
       var w0 = p.w0;
       return FT.makeLayer(
@@ -2276,7 +2276,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           }
           return cap(out.filter(function (v) { return Math.abs(v.w) <= W; }));
         },
-        { opName: '幅度调制', opFormula: '\\frac{1}{2}[X[j(\\omega-\\omega_{0})]+X[j(\\omega+\\omega_{0})]]', note: '两份复制、各减半。要能无失真搬移，需要 ω₀ 大于信号最高频率，否则正负搬移的两份会重叠。' }
+        { opName: '幅度调制', opFormula: '(1/2)[X(j(ω-ω₀))+X(j(ω+ω₀))]', note: '两份复制、各减半。要能无失真搬移，需要 ω₀ 大于信号最高频率，否则正负搬移的两份会重叠。' }
       );
     }
   };
@@ -2284,7 +2284,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* ------------------------------------------------------- 理想抽样 */
   PROP.sample = {
     id: 'sample', name: '理想抽样', en: 'Impulse Sampling', sec: '4.5 应用', short: '乘冲激串',
-    formula: 'x(t)\\sum_{n=-\\infty}^{+\\infty}\\delta(t-nT)\\;\\longleftrightarrow\\;\\frac{1}{T}\\sum_{k=-\\infty}^{+\\infty}X\\left[j\\left(\\omega-\\frac{2\\pi k}{T}\\right)\\right]',
+    formula: 'x(t)Σδ(t-nT)  (1/T)ΣX[j(ω-2πk/T)]',
     quote: '采样定理的全部，就这一行。',
     desc: '时域乘冲激串 = 取值打包；频域变成原频谱以 2π/T 为间隔的无穷复制。T 太大（采样太稀）复制品就会互相重叠。',
     params: [{ key: 'T', label: 'T', min: 0.4, max: 6, step: 0.05, def: 1.2, desc: '抽样周期' }],
@@ -2320,7 +2320,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           }
           return cap(out);
         },
-        { opName: '理想抽样', opFormula: '\\frac{1}{T}\\sum_{k}X\\left[j\\left(\\omega-\\frac{2\\pi k}{T}\\right)\\right]', note: '抽样后频谱以 2π/T 周期复制、幅度乘 1/T。想无失真恢复，需要 2π/T 大于信号带宽的两倍 —— 这就是奈奎斯特。' }
+        { opName: '理想抽样', opFormula: '(1/T)ΣX[j(ω-2πk/T)]', note: '抽样后频谱以 2π/T 周期复制、幅度乘 1/T。想无失真恢复，需要 2π/T 大于信号带宽的两倍 —— 这就是奈奎斯特。' }
       );
     }
   };
@@ -2892,7 +2892,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   UI.sliderRow = function (cfg, value, onInput) {
     var wrap = UI.el('div', { class: 'param-row' });
     var lab = UI.el('label');
-    lab.appendChild(UI.el('span', { class: 'pname', html: M.render(cfg.label || cfg.key) }));
+    lab.appendChild(UI.el('span', { class: 'pname', textContent: cfg.label || cfg.key }));
     var right = UI.el('span', {}, [
       cfg.desc ? UI.el('span', { class: 'pdesc', text: cfg.desc }) : null,
       UI.el('span', { class: 'pnum' })
@@ -3146,59 +3146,59 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     P.shift.compose = function (e, p) {
       return {
         t: sub('\\Tv', '(\\Tv-' + UI.trim(p.t0) + ')', e.tExpr),
-        X: e.xExpr + '\\cdot e^{-j\\Wv\\,' + UI.trim(p.t0) + '}'
+        X: e.xExpr + '·e^{-jωt₀}'
       };
     };
     P.reverse.compose = function (e) {
-      return { t: sub('\\Tv', '-\\Tv', e.tExpr), X: sub('\\Wv', '-\\Wv', e.xExpr) };
+      return { t: sub('\\Tv', '-\\Tv', e.tExpr), X: sub('ω', '-ω', e.xExpr) };
     };
     P.scale.compose = function (e, p) {
       var a = UI.trim(p.a);
       return {
         t: sub('\\Tv', a + '\\Tv', e.tExpr),
-        X: '\\frac{1}{' + Math.abs(p.a).toFixed(2) + '}\\left[' + sub('\\Wv', '\\frac{\\Wv}{' + a + '}', e.xExpr) + '\\right]'
+        X: '(1/' + Math.abs(p.a).toFixed(2) + ')[' + sub('ω', 'ω/' + a, e.xExpr) + ']'
       };
     };
     P.freqshift.compose = function (e, p) {
       var w = UI.trim(p.w0);
       return {
-        t: e.tExpr + '\\cdot e^{j\\,' + w + '\\Tv}',
-        X: sub('\\Wv', '(\\Wv-' + w + ')', e.xExpr)
+        t: e.tExpr + '·e^{jω₀t}',
+        X: sub('ω', '(ω-' + w + ')', e.xExpr)
       };
     };
     P.conj.compose = function (e) {
-      return { t: '\\left[' + e.tExpr + '\\right]^{*}', X: '\\left[' + sub('\\Wv', '-\\Wv', e.xExpr) + '\\right]^{*}' };
+      return { t: '[' + e.tExpr + ']*', X: '[' + sub('ω', '-ω', e.xExpr) + ']*' };
     };
     P.diff.compose = function (e) {
-      return { t: '\\frac{d}{d\\Tv}\\left[' + e.tExpr + '\\right]', X: 'j\\Wv\\left[' + e.xExpr + '\\right]' };
+      return { t: 'd/dt[' + e.tExpr + ']', X: 'jω[' + e.xExpr + ']' };
     };
     P.integ.compose = function (e) {
       return {
-        t: '\\int_{-\\infty}^{\\Tv}\\left[' + e.tExpr + '\\right]d\\tau',
-        X: '\\frac{1}{j\\Wv}\\left[' + e.xExpr + '\\right]+\\pi X(0)\\delta(\\Wv)'
+        t: '∫_{-∞}^{t}[' + e.tExpr + ']dτ',
+        X: '(1/jω)[' + e.xExpr + ']+πX(0)δ(ω)'
       };
     };
     P.fdiff.compose = function (e) {
-      return { t: '\\Tv\\cdot\\left[' + e.tExpr + '\\right]', X: 'j\\frac{d}{d\\Wv}\\left[' + e.xExpr + '\\right]' };
+      return { t: 't·[' + e.tExpr + ']', X: 'j·d/dω[' + e.xExpr + ']' };
     };
     P.modulate.compose = function (e, p) {
       var w = UI.trim(p.w0);
       return {
-        t: '\\cos(' + w + '\\Tv)\\cdot\\left[' + e.tExpr + '\\right]',
-        X: '\\tfrac{1}{2}\\left[' + sub('\\Wv', '(\\Wv-' + w + ')', e.xExpr) + '+' + sub('\\Wv', '(\\Wv+' + w + ')', e.xExpr) + '\\right]'
+        t: 'cos(' + w + 't)·[' + e.tExpr + ']',
+        X: '(1/2)[' + sub('ω', '(ω-' + w + ')', e.xExpr) + '+' + sub('ω', '(ω+' + w + ')', e.xExpr) + ']'
       };
     };
     P.sample.compose = function (e, p) {
       var T = UI.trim(p.T);
       return {
-        t: 'x(' + T + 'n)\\delta(\\Tv-' + T + 'n)',
-        X: '\\frac{1}{' + T + '}\\sum_{k}X\\left[j\\left(\\Wv-\\tfrac{2\\pi k}{' + T + '}\\right)\\right]'
+        t: 'x(' + T + 'n)δ(t-' + T + 'n)',
+        X: '(1/' + T + ')ΣX[j(ω-2πk/' + T + ')]'
       };
     };
     P.dual.compose = function (e) {
       return {
-        t: sub('\\Wv', '\\Tv', e.xExpr),
-        X: '2\\pi\\left[' + sub('\\Tv', '-\\Wv', e.tExpr) + '\\right]'
+        t: sub('ω', 't', e.xExpr),
+        X: '2π[' + sub('t', '-ω', e.tExpr) + ']'
       };
     };
   }
@@ -3653,7 +3653,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       step.appendChild(UI.el('span', { class: 'idx', text: String(idx + 1) }));
       var body = UI.el('div', { class: 'body' });
       body.appendChild(UI.el('span', { class: 'nm', text: op.name + ' ' + op.sec }));
-      body.appendChild(UI.el('span', { class: 'mx', html: M.render(op.formula) }));
+      body.appendChild(UI.el('span', { class: 'mx', textContent: op.formula }));
       step.appendChild(body);
       var rm = UI.el('button', { class: 'rm', title: '移除', text: '✕', onclick: function () { st.chain.splice(idx, 1); renderPropChips(); Lab.recompute(); } });
       step.appendChild(rm);
@@ -3772,28 +3772,28 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   var EXTRA = [
     {
       id: 'conv', name: '卷积', en: 'Convolution', sec: '4.4',
-      formula: 'x(t)*h(t)\\;\\longleftrightarrow\\;X(j\\omega)\\cdot H(j\\omega)',
+      formula: 'x(t)*h(t)  X(jω)·H(jω)',
       quote: '时域卷起来，频域乘起来 —— LTI 系统分析的全部。',
       desc: '卷积在时域里又是翻转又是平移又是积分，最难算；可一旦变到频域就退化成普通乘法。所以「求零状态响应」的标准流程是：X → 乘 H → 逆变换。',
       link: 'sys'
     },
     {
       id: 'mult', name: '相乘', en: 'Multiplication', sec: '4.5',
-      formula: 'x_{1}(t)x_{2}(t)\\;\\longleftrightarrow\\;\\frac{1}{2\\pi}\\left[X_{1}(j\\omega)*X_{2}(j\\omega)\\right]',
+      formula: 'x₁(t)x₂(t)  (1/2π)[X₁(jω)*X₂(jω)]',
       quote: '通信传输的基础。',
       desc: '和卷积性质正好对偶，注意前面那个 1/2π。时域相乘 = 频谱搬移/混叠，调制、解调、采样定理都建立在这一条上。',
       link: 'mod'
     },
     {
       id: 'parseval', name: '帕塞瓦尔定理', en: 'Parseval', sec: '4.3.8',
-      formula: '\\int_{-\\infty}^{+\\infty}|x(t)|^{2}dt=\\frac{1}{2\\pi}\\int_{-\\infty}^{+\\infty}|X(j\\omega)|^{2}d\\omega',
+      formula: '∫_{-∞}^{+∞}|x(t)|²dt = (1/2π)∫_{-∞}^{+∞}|X(jω)|²dω',
       quote: '自然定律，能量守恒。',
       desc: '时域能量等于频域能量除以 2π。它给了「频谱密度」一个物理单位，也是噪声带宽、3 dB 带宽这些工程概念的依据。',
       link: 'topics'
     },
     {
       id: 'sym', name: '共轭对称性', en: 'Conjugate Symmetry', sec: '4.3.3',
-      formula: 'x(t)=x^{*}(t)\\;\\Rightarrow\\;X(j\\omega)=X^{*}(-j\\omega)',
+      formula: 'x(t)=x*(t) ⇒ X(jω)=X*(-jω)',
       quote: '实信号 ⟹ 模偶、相位奇、实部偶、虚部奇。',
       desc: '偶部 ⟷ 实部，奇部 ⟷ 虚部（注意 x_o(t) 的变换是 jX_o(jω)，别丢掉那个 j）。这一条能省掉一半计算：只要画 ω>0，另一半对称出来。',
       link: 'lab'
@@ -3830,7 +3830,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-en', text: op.en }));
     card.appendChild(top);
 
-    card.appendChild(UI.el('div', { class: 'prop-formula', html: M.render(op.formula) }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: op.formula }));
     if (op.quote) card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + op.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: op.desc || '' }));
 
@@ -3927,7 +3927,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-name', text: e.name }));
     top.appendChild(UI.el('span', { class: 'prop-en', text: e.en }));
     card.appendChild(top);
-    card.appendChild(UI.el('div', { class: 'prop-formula', html: M.render(e.formula) }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: e.formula }));
     card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + e.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: e.desc }));
     var foot = UI.el('div', { class: 'prop-foot' });
@@ -3991,7 +3991,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tr = UI.el('tr');
     var tdT = UI.el('td');
     var btn = UI.el('button', { class: 'siglink', title: '点我在实验台打开', text: '' });
-    btn.innerHTML = M.render(sig.formulaT);
+    btn.textContent = sig.formulaT;
     btn.addEventListener('click', function () {
       FT.Lab.pick(sig.id);
       FT.UI.go('lab');
@@ -4002,11 +4002,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     tr.appendChild(tdT);
 
     var tdX = UI.el('td');
-    tdX.innerHTML = M.render(sig.formulaX);
+    tdX.textContent = sig.formulaX;
     tr.appendChild(tdX);
 
     var tdA = UI.el('td');
-    tdA.innerHTML = sig.formulaA ? M.render(sig.formulaA) : '<span class="hint">—</span>';
+    tdA.textContent = sig.formulaA || '—';
     tr.appendChild(tdA);
 
     if (showSpark) {
@@ -4042,11 +4042,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
       /* 总纲行 */
       var head = UI.el('tr');
-      ['\\sum_{k=-\\infty}^{+\\infty}a_{k}e^{jk\\omega_{0}\\Tv}',
-       '2\\pi\\sum_{k=-\\infty}^{+\\infty}a_{k}\\delta(\\Wv-k\\omega_{0})',
-       'a_{k}'].map(function (f) {
+      ['Σ_{k=-∞}^{+∞} a_k e^{jkω₀t}',
+       '2π Σ_{k=-∞}^{+∞} a_k δ(ω-kω₀)',
+       'a_k'].map(function (f) {
         var td = UI.el('td');
-        td.innerHTML = M.render(f);
+        td.textContent = f;
         head.appendChild(td);
       });
       if (showSpark) { head.appendChild(UI.el('td')); head.appendChild(UI.el('td')); }
@@ -4109,22 +4109,22 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     },
     {
       id: 'rc', name: '一阶 RC 低通 1/(1+jω/ωc)',
-      formula: 'H(j\\Wv)=\\frac{1}{1+j\\Wv/\\omega_{c}}',
-      params: [{ key: 'wc', label: '\\omega_{c}', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
+      formula: 'H(jω) = 1/(1+jω/ωc)',
+      params: [{ key: 'wc', label: 'ωc', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
       H: function (w, p, o) { var x = w / p.wc, d = 1 + x * x; o[0] = 1 / d; o[1] = -x / d; },
       note: '真实的低通：幅度按 1/√(1+(ω/ωc)²) 滚降（高频 −20 dB/十倍频），相位从 0 连续滞后到 −π/2 —— 非线性相位，所以方波过后边沿会变圆而不是振铃。'
     },
     {
       id: 'rcHP', name: '一阶 RC 高通 (jω/ωc)/(1+jω/ωc)',
-      formula: 'H(j\\Wv)=\\frac{j\\Wv/\\omega_{c}}{1+j\\Wv/\\omega_{c}}',
-      params: [{ key: 'wc', label: '\\omega_{c}', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
+      formula: 'H(jω) = (jω/ωc)/(1+jω/ωc)',
+      params: [{ key: 'wc', label: 'ωc', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
       H: function (w, p, o) { var x = w / p.wc, d = 1 + x * x; o[0] = x * x / d; o[1] = x / d; },
       note: '隔直电容：直流增益 0，高频增益 1。ω=ωc 处幅度 1/√2、相位 +45°。'
     },
     {
       id: 'butter2', name: '二阶低通（两个一阶串联）',
-      formula: 'H(j\\Wv)=\\frac{1}{(1+j\\Wv/\\omega_{c})^{2}}',
-      params: [{ key: 'wc', label: '\\omega_{c}', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
+      formula: 'H(jω) = 1/(1+jω/ωc)²',
+      params: [{ key: 'wc', label: 'ωc', min: 0.5, max: 12, step: 0.1, def: 3, desc: '转折角频率' }],
       H: function (w, p, o) {
         var x = w / p.wc, d = 1 + x * x, d2 = d * d;
         o[0] = (1 - x * x) / d2; o[1] = -2 * x / d2;
@@ -4140,7 +4140,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     },
     {
       id: 'integ', name: '积分器 H = 1/(jω)',
-      formula: 'H(j\\Wv)=\\frac{1}{j\\Wv}',
+      formula: 'H(jω) = 1/(jω)',
       params: [],
       H: function (w, p, o) { if (Math.abs(w) < 1e-9) { o[0] = 0; o[1] = 0; return; } o[0] = 0; o[1] = -1 / w; },
       note: '低频增益发散（ω→0 时 1/|ω|→∞），所以纯积分器对直流是不稳定的；相位恒为 −π/2·sgn(ω)。'
@@ -4167,7 +4167,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     },
     {
       id: 'rational', name: '自定义有理式（微分方程系数）',
-      formula: 'H(j\\Wv)=\\frac{b_{M}(j\\Wv)^{M}+\\cdots+b_{1}(j\\Wv)+b_{0}}{(j\\Wv)^{N}+a_{N-1}(j\\Wv)^{N-1}+\\cdots+a_{1}(j\\Wv)+a_{0}}',
+      formula: 'H(jω) = [b_M(jω)^M+...+b₁(jω)+b₀] / [(jω)^N+a_{N-1}(jω)^{N-1}+...+a₁(jω)+a₀]',
       params: [],
       H: null,
       note: '线性常系数微分方程、频率响应、冲激响应三者一一对应，都能用来描述同一个 LTI 连续时间系统。'
@@ -4391,23 +4391,23 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var numStr = coefStr(st.num), denStr = coefStr(st.den);
     var html = '';
     if (st.kind === 'rational') {
-      html += M.render('H(j\\Wv)=\\frac{' + polyLatex(st.num) + '}{' + polyLatex(st.den) + '}');
-      html += '<div class="ode-eq">' + M.render(odeLatex(st.num, st.den)) + '</div>';
+      html += 'H(jω) = [' + polyText(st.num) + '] / [' + polyText(st.den) + ']';
+      html += '<div class="ode-eq">' + odeText(st.num, st.den) + '</div>';
     } else {
-      html += M.render(S.formula);
+      html += S.formula;
     }
-    html += '<div class="pair">' + M.render('h(\\Tv)\\;\\longleftrightarrow\\;H(j\\Wv)') + '</div>';
+    html += '<div class="pair">h(t)  H(jω)</div>';
     box.innerHTML = html;
   }
 
-  function polyLatex(c) {
+  function polyText(c) {
     var parts = [];
     for (var k = 0; k < c.length; k++) {
       var v = c[k];
       if (Math.abs(v) < 1e-12) continue;
       var av = Math.abs(v);
       var numPart = (k > 0 && Math.abs(av - 1) < 1e-12) ? '' : UI.trim(av);
-      var pw = k === 0 ? '' : (k === 1 ? '(j\\Wv)' : '(j\\Wv)^{' + k + '}');
+      var pw = k === 0 ? '' : (k === 1 ? '(jω)' : '(jω)^' + k);
       var term = numPart + pw;
       if (!term) term = UI.trim(av);
       parts.push({ neg: v < 0, txt: term });
@@ -4418,7 +4418,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     return s;
   }
 
-  function odeLatex(num, den) {
+  function odeText(num, den) {
     function side(c, v) {
       var parts = [];
       for (var k = 0; k < c.length; k++) {
@@ -4426,8 +4426,8 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
         if (Math.abs(val) < 1e-12) continue;
         var av = Math.abs(val);
         var coef = (av === 1 && k > 0) ? '' : UI.trim(av);
-        var der = k === 0 ? v + '(' + '\\Tv' + ')' :
-          '\\frac{d^{' + k + '}\\,' + v + '}{d\\Tv^{' + k + '}}';
+        var der = k === 0 ? v + '(t)' :
+          'd^' + k + v + '/dt^' + k;
         parts.push({ neg: val < 0, txt: coef + der });
       }
       if (!parts.length) return '0';
@@ -4674,41 +4674,41 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   document.getElementById('btnFormula').addEventListener('click', function () {
     UI.openModal('公式速查 · 第四章', [
       '<h4>定义</h4>',
-      '<p class="mx">' + M.render('X(j\\Wv)=\\int_{-\\infty}^{+\\infty}x(\\Tv)e^{-j\\Wv\\Tv}\\,d\\Tv') + '</p>',
-      '<p class="mx">' + M.render('x(\\Tv)=\\frac{1}{2\\pi}\\int_{-\\infty}^{+\\infty}X(j\\Wv)e^{j\\Wv\\Tv}\\,d\\Wv') + '</p>',
+      '<p class="mx">X(jω) = ∫_{-∞}^{+∞} x(t)e^{-jωt} dt</p>',
+      '<p class="mx">x(t) = (1/2π)∫_{-∞}^{+∞} X(jω)e^{jωt} dω</p>',
       '<h4>周期信号的傅里叶变换</h4>',
-      '<p class="mx">' + M.render('X(j\\Wv)=2\\pi\\sum_{k=-\\infty}^{+\\infty}a_{k}\\,\\delta(\\Wv-k\\omega_{0})') + '</p>',
+      '<p class="mx">X(jω) = 2π Σ_{k=-∞}^{+∞} a_k δ(ω-kω₀)</p>',
       '<h4>收敛条件</h4>',
       '<ul><li>充分条件 A：平方可积 ∫|x|²dt &lt; ∞</li><li>充分条件 B：Dirichlet（绝对可积 + 有限极值 + 有限间断点）</li><li>两组条件<strong>不等价</strong>（反例 sin t / t）</li><li>间断点处收敛于<strong>左右极限平均值</strong>，附近出现 Gibbs 现象</li></ul>',
       '<h4>常用变换对（表 4.2 精选）</h4>',
       '<table><tr><th>x(t)</th><th>X(jω)</th></tr>',
-      '<tr><td>' + M.render('e^{-a\\Tv}u(\\Tv)') + '</td><td>' + M.render('\\frac{1}{a+j\\Wv}') + '</td></tr>',
-      '<tr><td>' + M.render('e^{-a|\\Tv|}') + '</td><td>' + M.render('\\frac{2a}{a^{2}+\\Wv^{2}}') + '</td></tr>',
-      '<tr><td>' + M.render('\\text{门}_{2T_{1}}(\\Tv)') + '</td><td>' + M.render('2T_{1}\\mathrm{Sa}(\\Wv T_{1})') + '</td></tr>',
-      '<tr><td>' + M.render('\\frac{\\sin W\\Tv}{\\pi\\Tv}') + '</td><td>' + M.render('\\text{门}_{2W}(\\Wv)') + '</td></tr>',
-      '<tr><td>' + M.render('\\delta(\\Tv)') + '</td><td>1</td></tr>',
-      '<tr><td>' + M.render('u(\\Tv)') + '</td><td>' + M.render('\\frac{1}{j\\Wv}+\\pi\\delta(\\Wv)') + '</td></tr>',
-      '<tr><td>' + M.render('\\cos\\omega_{0}\\Tv') + '</td><td>' + M.render('\\pi[\\delta(\\Wv-\\omega_{0})+\\delta(\\Wv+\\omega_{0})]') + '</td></tr>',
-      '<tr><td>' + M.render('\\sin\\omega_{0}\\Tv') + '</td><td>' + M.render('\\frac{\\pi}{j}[\\delta(\\Wv-\\omega_{0})-\\delta(\\Wv+\\omega_{0})]') + '</td></tr>',
-      '<tr><td>' + M.render('\\sum_{n}\\delta(\\Tv-nT)') + '</td><td>' + M.render('\\frac{2\\pi}{T}\\sum_{k}\\delta(\\Wv-\\tfrac{2\\pi k}{T})') + '</td></tr>',
-      '<tr><td>' + M.render('\\frac{\\Tv^{n-1}}{(n-1)!}e^{-a\\Tv}u(\\Tv)') + '</td><td>' + M.render('\\frac{1}{(a+j\\Wv)^{n}}') + '</td></tr>',
+      '<tr><td>e^{-at}u(t)</td><td>1/(a+jω)</td></tr>',
+      '<tr><td>e^{-a|t|}</td><td>2a/(a²+ω²)</td></tr>',
+      '<tr><td>门_{2T₁}(t)</td><td>2T₁·Sa(ωT₁)</td></tr>',
+      '<tr><td>sin(Wt)/(πt)</td><td>门_{2W}(ω)</td></tr>',
+      '<tr><td>δ(t)</td><td>1</td></tr>',
+      '<tr><td>u(t)</td><td>1/(jω)+πδ(ω)</td></tr>',
+      '<tr><td>cos(ω₀t)</td><td>π[δ(ω-ω₀)+δ(ω+ω₀)]</td></tr>',
+      '<tr><td>sin(ω₀t)</td><td>(π/j)[δ(ω-ω₀)-δ(ω+ω₀)]</td></tr>',
+      '<tr><td>Σ_n δ(t-nT)</td><td>(2π/T)Σ_k δ(ω-2πk/T)</td></tr>',
+      '<tr><td>[t^{n-1}/(n-1)!]e^{-at}u(t)</td><td>1/(a+jω)^n</td></tr>',
       '</table>',
       '<h4>性质（表 4.1）</h4>',
       '<table><tr><th>性质</th><th>公式</th></tr>',
-      '<tr><td>线性</td><td>' + M.render('ax+by\\leftrightarrow aX+bY') + '</td></tr>',
-      '<tr><td>时移</td><td>' + M.render('x(\\Tv-\\tau)\\leftrightarrow X(j\\Wv)e^{-j\\Wv\\tau}') + '</td></tr>',
-      '<tr><td>频移</td><td>' + M.render('e^{j\\omega_{0}\\Tv}x\\leftrightarrow X[j(\\Wv-\\omega_{0})]') + '</td></tr>',
-      '<tr><td>反转</td><td>' + M.render('x(-\\Tv)\\leftrightarrow X(-j\\Wv)') + '</td></tr>',
-      '<tr><td>展缩</td><td>' + M.render('x(a\\Tv)\\leftrightarrow \\frac{1}{|a|}X(j\\frac{\\Wv}{a})') + '</td></tr>',
-      '<tr><td>微分</td><td>' + M.render('\\frac{dx}{d\\Tv}\\leftrightarrow j\\Wv X(j\\Wv)') + '</td></tr>',
-      '<tr><td>积分</td><td>' + M.render('\\int_{-\\infty}^{\\Tv}x\\,d\\tau\\leftrightarrow \\frac{X(j\\Wv)}{j\\Wv}+\\pi X(0)\\delta(\\Wv)') + '</td></tr>',
-      '<tr><td>对偶</td><td>' + M.render('X(j\\Tv)\\leftrightarrow 2\\pi x(-\\Wv)') + '</td></tr>',
-      '<tr><td>卷积</td><td>' + M.render('x*h\\leftrightarrow X\\cdot Y') + '</td></tr>',
-      '<tr><td>相乘</td><td>' + M.render('xy\\leftrightarrow \\frac{1}{2\\pi}X*Y') + '</td></tr>',
-      '<tr><td>Parseval</td><td>' + M.render('\\int|x|^{2}dt=\\frac{1}{2\\pi}\\int|X|^{2}d\\Wv') + '</td></tr>',
+      '<tr><td>线性</td><td>ax+by  aX+bY</td></tr>',
+      '<tr><td>时移</td><td>x(t-τ)  X(jω)e^{-jωτ}</td></tr>',
+      '<tr><td>频移</td><td>e^{jω₀t}x  X[j(ω-ω₀)]</td></tr>',
+      '<tr><td>反转</td><td>x(-t)  X(-jω)</td></tr>',
+      '<tr><td>展缩</td><td>x(at)  (1/|a|)X(jω/a)</td></tr>',
+      '<tr><td>微分</td><td>dx/dt  jωX(jω)</td></tr>',
+      '<tr><td>积分</td><td>∫_{-}^{t}x dτ  X(jω)/(jω)+πX(0)δ(ω)</td></tr>',
+      '<tr><td>对偶</td><td>X(jt)  2πx(-ω)</td></tr>',
+      '<tr><td>卷积</td><td>x*h  X·Y</td></tr>',
+      '<tr><td>相乘</td><td>xy  (1/2π)X*Y</td></tr>',
+      '<tr><td>Parseval</td><td>∫|x|²dt = (1/2π)∫|X|²dω</td></tr>',
       '</table>',
       '<h4>LTI 系统</h4>',
-      '<p class="mx">' + M.render('H(j\\Wv)=\\frac{Y(j\\Wv)}{X(j\\Wv)}=\\frac{b_{M}(j\\Wv)^{M}+\\cdots+b_{0}}{(j\\Wv)^{N}+a_{N-1}(j\\Wv)^{N-1}+\\cdots+a_{0}}') + '</p>',
+      '<p class="mx">H(jω) = Y(jω)/X(jω) = [b_M(jω)^M+...+b₀] / [(jω)^N+a_{N-1}(jω)^{N-1}+...+a₀]</p>',
       '<p>冲激响应 h(t) 与频率响应 H(jω) 是一对傅里叶变换。四步法：求 X → 求 H → 相乘得 Y → 逆变换得 y。</p>'
     ].join(''));
   });
