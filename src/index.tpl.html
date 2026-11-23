@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>信号与系统 · 连续时间傅里叶变换可视化实验台</title>
+<meta name="description" content="第四章 连续时间傅里叶变换：信号选择、性质变换、时域波形、幅度谱、相位谱的交互式可视化实验台。">
+<style>
+@@CSS
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">&#8747;</div>
+      <div class="brand-text">
+        <h1>信号与系统 · 连续时间傅里叶变换</h1>
+        <p>第四章 可视化实验台 &nbsp;·&nbsp; 时域波形 / 幅度谱 / 相位谱 / 变换前后对比</p>
+      </div>
+    </div>
+
+    <nav class="mode-switch" id="modeSwitch" aria-label="功能切换">
+      <button class="mode-btn active" data-mode="lab">实验台</button>
+      <button class="mode-btn" data-mode="props">性质表</button>
+      <button class="mode-btn" data-mode="pairs">变换对</button>
+      <button class="mode-btn" data-mode="sys">系统频响</button>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="btn" id="btnFormula" title="常用公式与结论速查">公式速查</button>
+      <button class="btn" id="btnHelp" title="使用说明">使用说明</button>
+      <button class="btn btn-ghost" id="btnReset" title="恢复默认状态">重置</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+
+    <!-- ======================= 实验台 ======================= -->
+    <section class="view active" id="view-lab">
+      <div class="lab-grid">
+
+        <aside class="panel ctrl-panel">
+          <div class="panel-head">
+            <h2>信号选择</h2>
+            <span class="hint" id="sigCountHint">点击选择</span>
+          </div>
+          <div class="sig-groups" id="sigGroups"></div>
+
+          <div class="panel-head sub">
+            <h2>信号参数</h2>
+            <span class="hint">拖动调整</span>
+          </div>
+          <div class="params" id="sigParams"></div>
+          <p class="field-help" id="sigFormula"></p>
+
+          <div class="panel-head sub">
+            <h2>性质变换</h2>
+            <span class="hint">可叠加，按顺序作用</span>
+          </div>
+          <div class="chip-grid" id="propChips"></div>
+          <div class="params" id="propParams"></div>
+          <div class="chain" id="chainList"></div>
+
+          <div class="panel-head sub">
+            <h2>显示选项</h2>
+          </div>
+          <div class="toggles" id="displayToggles">
+            <label class="check"><input type="checkbox" id="optOverlay" checked><span>叠加变换前信号</span></label>
+            <label class="check"><input type="checkbox" id="optImpulses" checked><span>频谱绘制冲激谱线</span></label>
+            <label class="check"><input type="checkbox" id="optUnwrap"><span>相位解包裹</span></label>
+            <label class="check"><input type="checkbox" id="optPiTicks" checked><span>频率轴用 π 刻度</span></label>
+            <label class="check"><input type="checkbox" id="optHz"><span>频率轴用 Hz（f = ω/2π）</span></label>
+          </div>
+          <div class="field">
+            <label for="rangeW">频率显示范围 ω<sub>max</sub><span class="val" id="rangeWVal"></span></label>
+            <input type="range" id="rangeW" min="4" max="120" step="1" value="30">
+          </div>
+          <div class="field">
+            <label for="rangeT">时间显示范围 T<sub>max</sub><span class="val" id="rangeTVal"></span></label>
+            <input type="range" id="rangeT" min="2" max="60" step="1" value="14">
+          </div>
+        </aside>
+
+        <div class="lab-main">
+          <div class="panel formula-panel">
+            <div class="panel-head">
+              <h2>当前变换对</h2>
+              <span class="hint" id="formulaTag"></span>
+            </div>
+            <div class="formula-body">
+              <div class="formula-row" id="formulaMain"></div>
+              <div class="formula-row sub" id="formulaRule"></div>
+              <div class="formula-notes" id="formulaNotes"></div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-head">
+                <div class="chart-title"><span class="dot dot-x"></span>时域波形 <em>x(t)</em></div>
+                <div class="chart-sub" id="subTime"></div>
+                <div class="chart-actions">
+                  <button class="btn btn-tiny" data-act="zoomfit" data-chart="time">自适应</button>
+                  <button class="btn btn-tiny" data-act="export" data-chart="time">导出</button>
+                </div>
+              </div>
+              <div class="canvas-box"><canvas id="chTime"></canvas><div class="chart-readout" id="roTime"></div></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-head">
+                <div class="chart-title"><span class="dot dot-mag"></span>幅度谱 <em>|X(jω)|</em></div>
+                <div class="chart-sub" id="subMag"></div>
+                <div class="chart-actions">
+                  <button class="btn btn-tiny" data-act="zoomfit" data-chart="mag">自适应</button>
+                  <button class="btn btn-tiny" data-act="export" data-chart="mag">导出</button>
+                </div>
+              </div>
+              <div class="canvas-box"><canvas id="chMag"></canvas><div class="chart-readout" id="roMag"></div></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-head">
+                <div class="chart-title"><span class="dot dot-phase"></span>相位谱 <em>∠X(jω)</em></div>
+                <div class="chart-actions">
+                  <button class="btn btn-tiny" data-act="zoomfit" data-chart="phase">自适应</button>
+                  <button class="btn btn-tiny" data-act="export" data-chart="phase">导出</button>
+                </div>
+              </div>
+              <div class="canvas-box"><canvas id="chPhase"></canvas><div class="chart-readout" id="roPhase"></div></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-head">
+                <div class="chart-title"><span class="dot dot-extra"></span><span id="extraTitle">实部与虚部</span></div>
+                <div class="chart-actions seg" id="extraSeg">
+                  <button class="btn btn-tiny active" data-extra="reim">Re / Im</button>
+                  <button class="btn btn-tiny" data-extra="db">dB</button>
+                  <button class="btn btn-tiny" data-extra="energy">能量谱</button>
+                </div>
+              </div>
+              <div class="canvas-box"><canvas id="chExtra"></canvas><div class="chart-readout" id="roExtra"></div></div>
+            </div>
+          </div>
+
+          <div class="panel insight-panel">
+            <div class="panel-head"><h2>读数与观察</h2><span class="hint">鼠标移到图上可取值</span></div>
+            <div class="insight-grid" id="insightGrid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================= 性质表 ======================= -->
+    <section class="view" id="view-props">
+      <div class="view-head">
+        <h2>表 4.1 · 傅里叶变换性质</h2>
+        <p class="view-sub">每张卡片给出性质公式、结论要点与一个「变换前 → 变换后」的实算缩略图。点「载入实验台」可放大细看。</p>
+      </div>
+      <div class="props-grid" id="propsGrid"></div>
+    </section>
+
+    <!-- ======================= 变换对 ======================= -->
+    <section class="view" id="view-pairs">
+      <div class="view-head">
+        <h2>表 4.2 · 基本傅里叶变换对</h2>
+        <p class="view-sub">缩略图实时计算。点行首信号名可在实验台载入；带参数的变换对可在实验台里拖动滑块。</p>
+      </div>
+      <div class="pairs-toolbar">
+        <div class="seg" id="pairsSeg">
+          <button class="btn btn-tiny active" data-kind="all">全部</button>
+          <button class="btn btn-tiny" data-kind="energy">能量信号</button>
+          <button class="btn btn-tiny" data-kind="power">功率/周期信号</button>
+          <button class="btn btn-tiny" data-kind="dist">广义函数</button>
+        </div>
+        <label class="check inline"><input type="checkbox" id="pairsSpark" checked><span>显示缩略图</span></label>
+      </div>
+      <div class="table-wrap">
+        <table class="pairs-table">
+          <thead>
+            <tr><th>信号 x(t)</th><th>傅里叶变换 X(jω)</th><th>傅里叶级数系数（若为周期）</th><th>时域</th><th>幅度谱</th></tr>
+          </thead>
+          <tbody id="pairsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ======================= 系统频响 ======================= -->
+    <section class="view" id="view-sys">
+      <div class="view-head">
+        <h2>4.4 / 4.7 · 卷积性质与系统频域分析</h2>
+        <p class="view-sub">
+          <em>x(t)*h(t) ⟷ X(jω)·H(jω)</em>；冲激响应与频率响应是一对傅里叶变换。四步法：求 X → 求 H → 相乘得 Y → 逆变换得 y。
+        </p>
+      </div>
+      <div class="sys-grid">
+        <aside class="panel">
+          <div class="panel-head"><h2>输入信号 x(t)</h2></div>
+          <div class="chip-grid" id="sysInputChips"></div>
+          <div class="params" id="sysInputParams"></div>
+
+          <div class="panel-head sub"><h2>系统 H(jω)</h2></div>
+          <div class="field">
+            <label for="sysKind">系统类型</label>
+            <select id="sysKind"></select>
+          </div>
+          <div class="params" id="sysParams"></div>
+          <div class="field">
+            <label for="sysOde">微分方程（右侧 = 输出多项式，左侧 = 输入多项式，按 (jω) 降幂，逗号分隔）</label>
+            <div class="ode-row">
+              <input type="text" id="sysOdeNum" spellcheck="false">
+              <span class="ode-sep">/</span>
+              <input type="text" id="sysOdeDen" spellcheck="false">
+            </div>
+            <p class="field-help">例：分子 <code>1,0,3</code> 表示 (jω)²+3，分母 <code>1,6,8</code> 表示 (jω)²+6(jω)+8。改系数即改微分方程。</p>
+            <p class="field-error" id="sysOdeErr"></p>
+          </div>
+          <div class="formula-box" id="sysFormula"></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" id="sysPreset1">例题 4.1.1 预设</button>
+            <button class="btn" id="sysPreset2">课堂测试预设</button>
+          </div>
+        </aside>
+        <div class="sys-main">
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-head"><div class="chart-title"><span class="dot dot-mag"></span>幅频特性 |H(jω)|</div></div>
+              <div class="canvas-box"><canvas id="chSysMag"></canvas><div class="chart-readout" id="roSysMag"></div></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-head"><div class="chart-title"><span class="dot dot-phase"></span>相频特性 φ<sub>H</sub>(ω)</div></div>
+              <div class="canvas-box"><canvas id="chSysPhase"></canvas><div class="chart-readout" id="roSysPhase"></div></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-head"><div class="chart-title"><span class="dot dot-x"></span>输入 x(t) 与输出 y(t)</div></div>
+              <div class="canvas-box"><canvas id="chSysTime"></canvas><div class="chart-readout" id="roSysTime"></div></div>
+            </div>
+            <div class="chart-card">
+              <div class="chart-head"><div class="chart-title"><span class="dot dot-y"></span>频谱相乘 X(jω)·H(jω) = Y(jω)</div></div>
+              <div class="canvas-box"><canvas id="chSysSpec"></canvas><div class="chart-readout" id="roSysSpec"></div></div>
+            </div>
+          </div>
+          <div class="panel insight-panel"><div class="panel-head"><h2>系统结论</h2></div>
+            <div class="insight-grid" id="sysInsight"></div>
+            <p class="insight-note" id="sysNote"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footbar">
+    <span>数值由浏览器实时计算：解析式变换对 + 性质算子；含微分/积分时波形由频谱数值逆变换重建（截断会产生 ringing，属正常现象）。</span>
+    <span class="foot-right">第四章 连续时间傅里叶变换 · 可视化实验台</span>
+  </footer>
+</div>
+
+<div class="drawer" id="drawer" hidden aria-label="自定义函数">
+  <div class="drawer-head">
+    <h3>自定义信号 x(t)</h3>
+    <button class="icon-btn" id="drawerClose" aria-label="关闭">✕</button>
+  </div>
+  <div class="drawer-body">
+    <p class="field-help">用变量 <code>t</code> 写一个时间函数，工具会用数值积分算出它的傅里叶变换（截断窗内）。支持
+      <code>+ - * / ^</code>、<code>exp sin cos tan abs sqrt ln log sign</code>、<code>u step rect gate sa sinc tri delta</code>、
+      常量 <code>pi e</code> 与参数 <code>a b c w0 T</code>。</p>
+    <div class="field">
+      <label for="customExpr">x(t) =</label>
+      <input type="text" id="customExpr" spellcheck="false" placeholder="例如：exp(-3*t)*u(t)  或  rect(t/2)  或  sa(2*t)">
+      <p class="field-error" id="customErr"></p>
+    </div>
+    <div class="field">
+      <label for="customWindow">截断窗宽 <span class="val" id="customWindowVal"></span></label>
+      <input type="range" id="customWindow" min="4" max="80" step="1" value="24">
+    </div>
+    <div class="field">
+      <label for="customParams">参数值（逗号分隔，可留空）</label>
+      <input type="text" id="customParams" spellcheck="false" placeholder="a=2, w0=5">
+    </div>
+    <div class="chip-grid" id="customPresets"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="customApply">计算并载入实验台</button>
+    </div>
+    <p class="hint">注意：δ(t)、u(t)、常数这类不满足绝对可积的写法，数值结果只能近似出冲激附近的形态。</p>
+  </div>
+</div>
+
+<div class="modal-mask" id="modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><h3 id="modalTitle"></h3><button class="icon-btn" id="modalClose" aria-label="关闭">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+@@JS
+</script>
+</body>
+</html>
