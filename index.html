@@ -1122,15 +1122,29 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
      meta          {name, formulaT, formulaX, notes, flags}
   ------------------------------------------------------------------ */
   FT.makeLayer = function (xfn, Xfn, timp, wimp, meta) {
+    meta = meta || {};
+    wimp = wimp || function () { return []; };
+    var lineCache = null;
+    /* 该层是否已有频域谱线：有则说明频谱已被完整给出，无需再算第二遍 */
+    function hasLines() {
+      if (lineCache === null) {
+        try { lineCache = wimp(1e9).length > 0; } catch (e) { lineCache = false; }
+      }
+      return lineCache;
+    }
     return {
       xfn: xfn,
       Xfn: Xfn,
       timp: timp || [],
-      wimp: wimp || function () { return []; },
-      meta: meta || {},
-      /* 完整频谱（正则 + 时域冲激的贡献）。order>=1 表示冲激偶：δ'(t-t0) ⟷ jω e^{-jωt0} */
+      wimp: wimp,
+      meta: meta,
+      /* 完整频谱（正则 + 时域冲激的贡献）。order>=1 表示冲激偶：δ'(t-t0) ⟷ jω e^{-jωt0}
+         时域冲激串是截断的，直接求和得到的是 Dirichlet 核而非真实谱线，所以：
+         周期信号（有频域谱线）与 meta.specOnly（频谱另由复制公式给出，如理想抽样）
+         时，timp 只作时域绘图用，不再折叠进连续谱，免得同一份能量被算两遍。 */
       Xfull: function (w, out) {
         this.Xfn(w, out);
+        if (meta.specOnly || hasLines()) return out;
         var tp = this.timp || [];
         for (var i = 0; i < tp.length; i++) {
           var p = tp[i], ord = p.order || 0;
@@ -2324,7 +2338,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           }
           return cap(out);
         },
-        { opName: '理想抽样', opFormula: '(1/T)ΣX[j(ω-2πk/T)]', note: '抽样后频谱以 2π/T 周期复制、幅度乘 1/T。想无失真恢复，需要 2π/T 大于信号带宽的两倍 —— 这就是奈奎斯特。' }
+        { opName: '理想抽样', opFormula: '(1/T)ΣX[j(ω-2πk/T)]', specOnly: true, note: '抽样后频谱以 2π/T 周期复制、幅度乘 1/T。想无失真恢复，需要 2π/T 大于信号带宽的两倍 —— 这就是奈奎斯特。' }
       );
     }
   };
@@ -3271,6 +3285,38 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var out = [];
     var w = r.w, Xre = r.Xre, Xim = r.Xim;
     var i0 = Math.floor((w.length - 1) / 2);
+
+    /* 线谱信号：峰值/带宽/过零点/能量这些连续谱的量都没有意义，直接报谱线 */
+    if (r.wimp.length) {
+      var ws = r.wimp.map(function (q) { return q.w; }).sort(function (a, b) { return a - b; });
+      var gap = Infinity, dc = null, top = 0, topW = 0;
+      for (var m = 0; m < r.wimp.length; m++) {
+        var q = r.wimp[m], h = Math.hypot(q.re, q.im);
+        if (h > top || (Math.abs(h - top) < 1e-12 && Math.abs(q.w) < Math.abs(topW))) { top = h; topW = q.w; }
+        if (Math.abs(q.w) < 1e-9) dc = h;
+      }
+      for (var k = 1; k < ws.length; k++) {
+        var dv = ws[k] - ws[k - 1];
+        if (dv > 1e-9 && dv < gap) gap = dv;
+      }
+      out.push({ k: '谱线根数（窗口内）', v: String(ws.length) });
+      out.push({ k: '相邻谱线间隔', v: isFinite(gap) ? UI.trim(gap) + ' rad/s = ' + UI.trim(gap / TAU) + ' Hz' : '—（单根）' });
+      out.push({ k: '直流谱线 2πa₀', v: dc === null ? '无' : UI.trim(dc) });
+      out.push({ k: '最强谱线', v: UI.trim(top) + ' @ ω=' + UI.trim(topW) });
+      out.push({ k: '连续部分 |X| 峰值', v: UI.trim(d.maxMag) });
+      var pairs = 0, bad = 0;
+      r.wimp.forEach(function (p) {
+        if (p.w < -1e-9) return;
+        var m = null;
+        r.wimp.forEach(function (q) { if (Math.abs(q.w + p.w) < 1e-9) m = q; });
+        if (!m) return;
+        pairs++;
+        if (Math.abs(Math.hypot(m.re, m.im) - Math.hypot(p.re, p.im)) > 1e-6 * Math.max(1, Math.hypot(p.re, p.im))) bad++;
+      });
+      out.push({ k: '谱线对称性', v: pairs ? (bad ? bad + '/' + pairs + ' 对不等（非实信号）' : '|X| 偶 ✓（' + pairs + ' 对）') : '—（无成对谱线）' });
+      return out;
+    }
+
     var X0re = Xre[i0], X0im = Xim[i0];
     out.push({ k: 'X(j0) = ∫x(t)dt', v: UI.cplx(X0re, X0im) });
     out.push({ k: '|X| 峰值（正则部分）', v: UI.trim(d.maxMag) });
@@ -3465,10 +3511,17 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       eSeries.push({ x: wAx, y: d.en, color: C.y, width: 1.8, fill: 'rgba(15,122,77,.10)', label: '|X|²' });
     }
     document.getElementById('extraTitle').textContent = title;
+    /* 谱线的实部同样是 Re X：周期信号在这一格里剩下的就是这些箭头 */
+    var eImp = [];
+    if (o.extra === 'reim') {
+      eImp = r.wimp.filter(function (q) { return Math.abs(q.re) > 1e-12; }).map(function (q) {
+        return { x: o.hz ? q.w / TAU : q.w, y: q.re, color: C.x, width: 2, label: UI.trim(q.re) };
+      });
+    }
     charts.extra.setDomain(charts.mag.xmin, charts.mag.xmax);
     charts.extra.o.piTicks = o.piTicks && !o.hz;
     charts.extra.setSeries(eSeries);
-    charts.extra.setImpulses([]);
+    charts.extra.setImpulses(eImp);
     charts.extra.setHLine(o.extra === 'db' ? [{ y: -3, label: '−3 dB', color: '#f0c9a8' }] : []);
     charts.extra.draw();
   }
@@ -3826,10 +3879,15 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
   var host;
 
+  function timeImp(r) {
+    return r.timp.filter(function (q) { return !q.order; })
+      .map(function (q) { return { x: q.t, y: Math.hypot(q.re, q.im), color: C.x }; });
+  }
+
   function miniSpec(r, kind) {
     var d = r.derived;
     if (kind === 'time') {
-      return { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }] };
+      return { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }], impulses: timeImp(r) };
     }
     if (kind === 'mag') {
       return {
@@ -3935,7 +3993,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           { x: sa.series[0].x, y: sa.series[0].y, color: C.ghost, width: 1.3, dash: [4, 3] },
           { x: sb.series[0].x, y: sb.series[0].y, color: sa.series[0].color, width: 1.6 }
         ],
-        impulses: (kind === 'mag') ? sb.impulses.concat(sa.impulses) : []
+        impulses: kind === 'mag' ? sb.impulses.concat(sa.impulses) : (kind === 'time' ? sb.impulses : [])
       };
       FT.miniDraw(cv, spec);
     }
@@ -3993,7 +4051,12 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   function sparkline(r, kind) {
     var d = r.derived;
     var spec = kind === 'time'
-      ? { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }] }
+      ? {
+        xmin: r.t[0], xmax: r.t[r.t.length - 1],
+        series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }],
+        impulses: r.timp.filter(function (q) { return !q.order; })
+          .map(function (q) { return { x: q.t, y: Math.hypot(q.re, q.im), color: C.x }; })
+      }
       : {
         xmin: r.w[0], xmax: r.w[r.w.length - 1],
         series: [{ x: r.w, y: d.mag, color: C.mag, width: 1.5 }],
@@ -4352,7 +4415,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       { x: d.w, y: d.Xmag, color: C.x2, width: 1.6, dash: [5, 4], label: '|X|' },
       { x: d.w, y: d.Ymag, color: C.y, width: 2, label: '|Y|' }
     ]);
-    charts.spec.setImpulses([]);
+    /* 周期输入的谱经系统后仍是谱线：逐根强度 = |2πa_k·H(jω_k)|；被滤掉的根不画 */
+    charts.spec.setImpulses(d.Yimp.map(function (q) {
+      var h = Math.hypot(q.re, q.im);
+      return { x: q.w, y: h, color: C.y, label: h > 1e-9 ? UI.trim(h) : '' };
+    }).filter(function (q) { return q.y > 1e-9; }));
     charts.spec.draw();
   }
 
@@ -4617,7 +4684,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       '<h4>2. 加性质</h4>',
       '<p>在「性质变换」里点一个性质（如「时移 t₀」「频移 ω₀」「微分」），信号就会按该性质变换。可叠加多个性质，按顺序作用 —— 公式卡片会显示合成后的变换对。</p>',
       '<h4>3. 看频谱</h4>',
-      '<p>四张图：时域波形、幅度谱 |X(jω)|、相位谱 ∠X(jω)、以及可切换的 实部/虚部 或 dB 或能量谱。鼠标移到图上可读数；双击图表可重置 y 范围。</p>',
+      '<p>四张图：时域、频域 |X(jω)|、相位谱 ∠X(jω)、以及可切换的 实部/虚部 或 dB 或能量谱。鼠标移到图上可读数；双击图表可重置 y 范围。</p>',
       '<h4>其它模块</h4>',
       '<ul>',
       '<li><b>性质表</b>：每张卡片给出性质公式、金句、以及一个「变换前 → 变换后」的实算缩略图。点「载入实验台」可放大细看。</li>',
@@ -4630,7 +4697,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       '<ul>',
       '<li>解析式信号走闭包通道，变换对严格精确。</li>',
       '<li>含「微分 / 积分」的链会触发数值逆变换重建波形，截断会引起 sinc 振铃 —— 这是正常现象，不是 bug。</li>',
-      '<li>周期信号的频谱是冲激串，工具用箭头画出来；幅度谱的 y 轴会自动包含箭头高度。</li>',
+      '<li>周期信号的频谱是冲激串：频域那一格只画箭头，箭头高度就是谱线强度 2πa_k，连续部分为 0。谱线之间相位无定义，所以相位谱那一格会是空的。</li>',
       '</ul>'
     ].join(''));
   });
