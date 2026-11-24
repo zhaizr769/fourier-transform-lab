@@ -56,10 +56,15 @@
 
   var host;
 
+  function timeImp(r) {
+    return r.timp.filter(function (q) { return !q.order; })
+      .map(function (q) { return { x: q.t, y: Math.hypot(q.re, q.im), color: C.x }; });
+  }
+
   function miniSpec(r, kind) {
     var d = r.derived;
     if (kind === 'time') {
-      return { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }] };
+      return { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }], impulses: timeImp(r) };
     }
     if (kind === 'mag') {
       return {
@@ -165,7 +170,7 @@
           { x: sa.series[0].x, y: sa.series[0].y, color: C.ghost, width: 1.3, dash: [4, 3] },
           { x: sb.series[0].x, y: sb.series[0].y, color: sa.series[0].color, width: 1.6 }
         ],
-        impulses: (kind === 'mag') ? sb.impulses.concat(sa.impulses) : []
+        impulses: kind === 'mag' ? sb.impulses.concat(sa.impulses) : (kind === 'time' ? sb.impulses : [])
       };
       FT.miniDraw(cv, spec);
     }

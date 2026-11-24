@@ -255,7 +255,11 @@
       { x: d.w, y: d.Xmag, color: C.x2, width: 1.6, dash: [5, 4], label: '|X|' },
       { x: d.w, y: d.Ymag, color: C.y, width: 2, label: '|Y|' }
     ]);
-    charts.spec.setImpulses([]);
+    /* 周期输入的谱经系统后仍是谱线：逐根强度 = |2πa_k·H(jω_k)|；被滤掉的根不画 */
+    charts.spec.setImpulses(d.Yimp.map(function (q) {
+      var h = Math.hypot(q.re, q.im);
+      return { x: q.w, y: h, color: C.y, label: h > 1e-9 ? UI.trim(h) : '' };
+    }).filter(function (q) { return q.y > 1e-9; }));
     charts.spec.draw();
   }
 

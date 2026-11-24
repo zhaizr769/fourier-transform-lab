@@ -14,7 +14,12 @@
   function sparkline(r, kind) {
     var d = r.derived;
     var spec = kind === 'time'
-      ? { xmin: r.t[0], xmax: r.t[r.t.length - 1], series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }] }
+      ? {
+        xmin: r.t[0], xmax: r.t[r.t.length - 1],
+        series: [{ x: r.t, y: r.xre, color: C.x, width: 1.5 }],
+        impulses: r.timp.filter(function (q) { return !q.order; })
+          .map(function (q) { return { x: q.t, y: Math.hypot(q.re, q.im), color: C.x }; })
+      }
       : {
         xmin: r.w[0], xmax: r.w[r.w.length - 1],
         series: [{ x: r.w, y: d.mag, color: C.mag, width: 1.5 }],

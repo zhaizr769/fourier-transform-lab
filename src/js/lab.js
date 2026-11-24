@@ -235,6 +235,38 @@
     var out = [];
     var w = r.w, Xre = r.Xre, Xim = r.Xim;
     var i0 = Math.floor((w.length - 1) / 2);
+
+    /* 线谱信号：峰值/带宽/过零点/能量这些连续谱的量都没有意义，直接报谱线 */
+    if (r.wimp.length) {
+      var ws = r.wimp.map(function (q) { return q.w; }).sort(function (a, b) { return a - b; });
+      var gap = Infinity, dc = null, top = 0, topW = 0;
+      for (var m = 0; m < r.wimp.length; m++) {
+        var q = r.wimp[m], h = Math.hypot(q.re, q.im);
+        if (h > top || (Math.abs(h - top) < 1e-12 && Math.abs(q.w) < Math.abs(topW))) { top = h; topW = q.w; }
+        if (Math.abs(q.w) < 1e-9) dc = h;
+      }
+      for (var k = 1; k < ws.length; k++) {
+        var dv = ws[k] - ws[k - 1];
+        if (dv > 1e-9 && dv < gap) gap = dv;
+      }
+      out.push({ k: '谱线根数（窗口内）', v: String(ws.length) });
+      out.push({ k: '相邻谱线间隔', v: isFinite(gap) ? UI.trim(gap) + ' rad/s = ' + UI.trim(gap / TAU) + ' Hz' : '—（单根）' });
+      out.push({ k: '直流谱线 2πa₀', v: dc === null ? '无' : UI.trim(dc) });
+      out.push({ k: '最强谱线', v: UI.trim(top) + ' @ ω=' + UI.trim(topW) });
+      out.push({ k: '连续部分 |X| 峰值', v: UI.trim(d.maxMag) });
+      var pairs = 0, bad = 0;
+      r.wimp.forEach(function (p) {
+        if (p.w < -1e-9) return;
+        var m = null;
+        r.wimp.forEach(function (q) { if (Math.abs(q.w + p.w) < 1e-9) m = q; });
+        if (!m) return;
+        pairs++;
+        if (Math.abs(Math.hypot(m.re, m.im) - Math.hypot(p.re, p.im)) > 1e-6 * Math.max(1, Math.hypot(p.re, p.im))) bad++;
+      });
+      out.push({ k: '谱线对称性', v: pairs ? (bad ? bad + '/' + pairs + ' 对不等（非实信号）' : '|X| 偶 ✓（' + pairs + ' 对）') : '—（无成对谱线）' });
+      return out;
+    }
+
     var X0re = Xre[i0], X0im = Xim[i0];
     out.push({ k: 'X(j0) = ∫x(t)dt', v: UI.cplx(X0re, X0im) });
     out.push({ k: '|X| 峰值（正则部分）', v: UI.trim(d.maxMag) });
@@ -429,10 +461,17 @@
       eSeries.push({ x: wAx, y: d.en, color: C.y, width: 1.8, fill: 'rgba(15,122,77,.10)', label: '|X|²' });
     }
     document.getElementById('extraTitle').textContent = title;
+    /* 谱线的实部同样是 Re X：周期信号在这一格里剩下的就是这些箭头 */
+    var eImp = [];
+    if (o.extra === 'reim') {
+      eImp = r.wimp.filter(function (q) { return Math.abs(q.re) > 1e-12; }).map(function (q) {
+        return { x: o.hz ? q.w / TAU : q.w, y: q.re, color: C.x, width: 2, label: UI.trim(q.re) };
+      });
+    }
     charts.extra.setDomain(charts.mag.xmin, charts.mag.xmax);
     charts.extra.o.piTicks = o.piTicks && !o.hz;
     charts.extra.setSeries(eSeries);
-    charts.extra.setImpulses([]);
+    charts.extra.setImpulses(eImp);
     charts.extra.setHLine(o.extra === 'db' ? [{ y: -3, label: '−3 dB', color: '#f0c9a8' }] : []);
     charts.extra.draw();
   }

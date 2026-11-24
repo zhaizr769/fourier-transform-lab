@@ -47,15 +47,29 @@
      meta          {name, formulaT, formulaX, notes, flags}
   ------------------------------------------------------------------ */
   FT.makeLayer = function (xfn, Xfn, timp, wimp, meta) {
+    meta = meta || {};
+    wimp = wimp || function () { return []; };
+    var lineCache = null;
+    /* 该层是否已有频域谱线：有则说明频谱已被完整给出，无需再算第二遍 */
+    function hasLines() {
+      if (lineCache === null) {
+        try { lineCache = wimp(1e9).length > 0; } catch (e) { lineCache = false; }
+      }
+      return lineCache;
+    }
     return {
       xfn: xfn,
       Xfn: Xfn,
       timp: timp || [],
-      wimp: wimp || function () { return []; },
-      meta: meta || {},
-      /* 完整频谱（正则 + 时域冲激的贡献）。order>=1 表示冲激偶：δ'(t-t0) ⟷ jω e^{-jωt0} */
+      wimp: wimp,
+      meta: meta,
+      /* 完整频谱（正则 + 时域冲激的贡献）。order>=1 表示冲激偶：δ'(t-t0) ⟷ jω e^{-jωt0}
+         时域冲激串是截断的，直接求和得到的是 Dirichlet 核而非真实谱线，所以：
+         周期信号（有频域谱线）与 meta.specOnly（频谱另由复制公式给出，如理想抽样）
+         时，timp 只作时域绘图用，不再折叠进连续谱，免得同一份能量被算两遍。 */
       Xfull: function (w, out) {
         this.Xfn(w, out);
+        if (meta.specOnly || hasLines()) return out;
         var tp = this.timp || [];
         for (var i = 0; i < tp.length; i++) {
           var p = tp[i], ord = p.order || 0;
