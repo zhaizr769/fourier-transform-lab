@@ -17,7 +17,7 @@
       <div class="brand-mark" aria-hidden="true">&#8747;</div>
       <div class="brand-text">
         <h1>信号与系统 · 连续时间傅里叶变换</h1>
-        <p>第四章 可视化实验台 &nbsp;·&nbsp; 时域波形 / 幅度谱 / 相位谱 / 变换前后对比</p>
+        <p>第四章 可视化实验台 &nbsp;·&nbsp; 时域 / 频域 / 相位谱 / 变换前后对比</p>
       </div>
     </div>
 
@@ -99,7 +99,7 @@
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-head">
-                <div class="chart-title"><span class="dot dot-x"></span>时域波形 <em>x(t)</em></div>
+                <div class="chart-title"><span class="dot dot-x"></span>时域 <em>x(t)</em></div>
                 <div class="chart-sub" id="subTime"></div>
                 <div class="chart-actions">
                   <button class="btn btn-tiny" data-act="zoomfit" data-chart="time">自适应</button>
@@ -111,7 +111,7 @@
 
             <div class="chart-card">
               <div class="chart-head">
-                <div class="chart-title"><span class="dot dot-mag"></span>幅度谱 <em>|X(jω)|</em></div>
+                <div class="chart-title"><span class="dot dot-mag"></span>频域 <em>|X(jω)|</em></div>
                 <div class="chart-sub" id="subMag"></div>
                 <div class="chart-actions">
                   <button class="btn btn-tiny" data-act="zoomfit" data-chart="mag">自适应</button>
@@ -180,7 +180,7 @@
       <div class="table-wrap">
         <table class="pairs-table">
           <thead>
-            <tr><th>信号 x(t)</th><th>傅里叶变换 X(jω)</th><th>傅里叶级数系数（若为周期）</th><th>时域</th><th>幅度谱</th></tr>
+            <tr><th>信号 x(t)</th><th>傅里叶变换 X(jω)</th><th>傅里叶级数系数（若为周期）</th><th>时域</th><th>频域</th></tr>
           </thead>
           <tbody id="pairsBody"></tbody>
         </table>

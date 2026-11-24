@@ -55,10 +55,15 @@
     var fn;
     try { fn = FT.compile(c.expr); } catch (e) { return { error: e.message }; }
     var pv = {};
-    (c.params || '').split(',').forEach(function (kv) {
-      var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
-      if (m) pv[m[1]] = parseFloat(m[2]);
-    });
+    var raw = c.params;
+    if (typeof raw === 'string') {
+      raw.split(',').forEach(function (kv) {
+        var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
+        if (m) pv[m[1]] = parseFloat(m[2]);
+      });
+    } else if (raw) {
+      Object.keys(raw).forEach(function (k) { pv[k] = +raw[k]; });
+    }
     var Wt = c.window;
     var n = 4001;
     var tg = FT.linspace(-Wt, Wt, n);
@@ -357,11 +362,6 @@
   }
 
   function drawAll() {
-    console.log('[Lab] drawAll: lastRender=', lastRender ? 'ok' : 'null');
-    if (!lastRender) {
-      console.warn('[Lab] drawAll: lastRender is null, skipping');
-      return;
-    }
     var r = lastRender, d = r.derived, o = Lab.state.opts;
     var wAx = freqAxis(r);
     var xLabel = o.hz ? 'f (Hz)' : 'ω (rad/s)';
@@ -486,9 +486,7 @@
   /* --------------------------------------------------------------- 计算 */
   Lab.recompute = function () {
     var st = Lab.state, o = st.opts;
-    console.log('[Lab] recompute: sigId=', st.sigId);
     var base = buildBase(st);
-    console.log('[Lab] recompute: base=', base ? 'ok' : 'null');
     if (!base) return;
     if (base.error) {
       var e = document.getElementById('customErr');
@@ -501,7 +499,6 @@
     var res = st.chain.length ? applyChain(base, st.chain) : {
       layer: base, tExpr: base.meta.formulaT, xExpr: base.meta.formulaX, steps: [], reconstruct: false
     };
-    console.log('[Lab] recompute: res.layer=', res.layer ? 'ok' : 'null');
 
     var opts = {
       tmin: -o.tmax, tmax: o.tmax, Nt: NT,
@@ -510,7 +507,6 @@
       reconstructTime: res.reconstruct
     };
     var r = FT.render(res.layer, opts);
-    console.log('[Lab] recompute: render result t.len=', r.t.length, 'w.len=', r.w.length);
     r.opts = o;
     r.meta = res.layer.meta;
     r.marks = (base.meta && base.meta.marks) || [];
@@ -534,11 +530,8 @@
   /* --------------------------------------------------------------- 界面 */
   function renderSigPicker() {
     var host = document.getElementById('sigGroups');
-    console.log('[Lab] renderSigPicker: host element=', host ? 'found' : 'NOT FOUND');
     UI.clear(host);
     var list = FT.signalList();
-    console.log('[Lab] renderSigPicker: found', list.length, 'signals');
-    console.log('[Lab] renderSigPicker: first signal=', list[0] ? list[0].id : 'none');
     FT.SIGGROUPS.forEach(function (grp) {
       var items = list.filter(function (s) { return s.group === grp.id; });
       if (!items.length) return;
@@ -546,11 +539,9 @@
       box.appendChild(UI.el('div', { class: 'glabel', text: grp.label }));
       var cg = UI.el('div', { class: 'chip-grid' });
       items.forEach(function (s) {
-        var chip = UI.chip(s.name, s.formulaT, Lab.state.sigId === s.id, function () {
-          console.log('[Lab] Signal clicked:', s.id);
+        cg.appendChild(UI.chip(s.name, s.formulaT, Lab.state.sigId === s.id, function () {
           pickSignal(s.id);
-        });
-        cg.appendChild(chip);
+        }));
       });
       if (grp.id === 'custom') {
         cg.appendChild(UI.chip('打开表达式面板', 'x(t)=…', false, function () { UI.openDrawer(); }));
@@ -559,14 +550,11 @@
       host.appendChild(box);
     });
     document.getElementById('sigCountHint').textContent = list.length + ' 个可选';
-    console.log('[Lab] renderSigPicker: done, chips created');
   }
 
   function pickSignal(id) {
-    console.log('[Lab] pickSignal called with id:', id);
     Lab.state.sigId = id;
     var sig = FT.getSignal(id);
-    console.log('[Lab] pickSignal: got signal', sig ? sig.name : 'null');
     if (sig && !sig.custom) {
       Lab.state.params = FT.defaultParams(sig);
       if (sig.window) {
@@ -577,6 +565,7 @@
     }
     renderSigPicker();
     renderParamRows();
+    renderPropChips();
     Lab.recompute();
   }
 
@@ -652,7 +641,7 @@
       step.appendChild(UI.el('span', { class: 'idx', text: String(idx + 1) }));
       var body = UI.el('div', { class: 'body' });
       body.appendChild(UI.el('span', { class: 'nm', text: op.name + ' ' + op.sec }));
-      body.appendChild(UI.el('span', { class: 'mx', textContent: op.formula }));
+      body.appendChild(UI.el('span', { class: 'mx', html: UI.renderMath(op.formula) }));
       step.appendChild(body);
       var rm = UI.el('button', { class: 'rm', title: '移除', text: '✕', onclick: function () { st.chain.splice(idx, 1); renderPropChips(); Lab.recompute(); } });
       step.appendChild(rm);
@@ -707,7 +696,6 @@
 
   /* ------------------------------------------------------------- 初始化 */
   Lab.init = function () {
-    console.log('[Lab] init: starting');
     installCompose();
     var saved = UI.load();
     if (saved && saved.sigId) {
@@ -718,7 +706,6 @@
       Object.assign(Lab.state.custom, saved.custom || {});
     }
     var sig = FT.getSignal(Lab.state.sigId);
-    console.log('[Lab] init: current sigId=', Lab.state.sigId, 'sig=', sig ? sig.name : 'null');
     if (!sig) Lab.state.sigId = 'exp1s';
     Lab.state.params = Lab.state.params || {};
     (FT.getSignal(Lab.state.sigId).params || []).forEach(function (d) {
@@ -729,16 +716,13 @@
     charts.mag = new Chart(document.getElementById('chMag'), document.getElementById('roMag'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
     charts.phase = new Chart(document.getElementById('chPhase'), document.getElementById('roPhase'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
     charts.extra = new Chart(document.getElementById('chExtra'), document.getElementById('roExtra'), { xlabel: 'ω', xLabel: 'ω', piTicks: true, padL: 52 });
-    console.log('[Lab] init: charts created');
 
     renderSigPicker();
     renderParamRows();
     renderPropChips();
     bindStatic();
     syncRangeSliders();
-    console.log('[Lab] init: calling recompute');
     Lab.recompute();
-    console.log('[Lab] init: done');
   };
 
   Lab.pick = pickSignal;

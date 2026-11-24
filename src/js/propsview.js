@@ -84,7 +84,7 @@
     top.appendChild(UI.el('span', { class: 'prop-en', text: op.en }));
     card.appendChild(top);
 
-    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(op.formula) }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', html: UI.renderMath(op.formula) }));
     if (op.quote) card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + op.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: op.desc || '' }));
 
@@ -98,7 +98,7 @@
       return cv;
     };
     var cvT = mk(['时域 x(t)', '灰=前 / 蓝=后']);
-    var cvM = mk(['幅度谱 |X(jω)|', '灰=前 / 橙=后']);
+    var cvM = mk(['频域 |X(jω)|', '灰=前 / 橙=后']);
     var cvP = mk(['相位谱 ∠X(jω)', '灰=前 / 紫=后']);
     card.appendChild(demoBox);
 
@@ -181,7 +181,7 @@
     top.appendChild(UI.el('span', { class: 'prop-name', text: e.name }));
     top.appendChild(UI.el('span', { class: 'prop-en', text: e.en }));
     card.appendChild(top);
-    card.appendChild(UI.el('div', { class: 'prop-formula', innerHTML: UI.renderMath(e.formula) }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', html: UI.renderMath(e.formula) }));
     card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + e.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: e.desc }));
     var foot = UI.el('div', { class: 'prop-foot' });

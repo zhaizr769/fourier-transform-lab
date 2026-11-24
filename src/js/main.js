@@ -7,7 +7,6 @@
   var FT = global.FT, UI = global.UI, M = global.MML;
 
   /* ----------------------------------------------------------- 模式切换 */
-  var UI = global.UI;
   UI.go = function (mode) {
     var btns = document.querySelectorAll('#modeSwitch .mode-btn');
     for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].dataset.mode === mode);
@@ -18,6 +17,7 @@
     if (mode === 'sys') FT.Sys && FT.Sys.init();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  FT.UI = UI;  // 性质表/变换对里的「载入实验台」按钮走 FT.UI.go
 
   document.getElementById('modeSwitch').addEventListener('click', function (e) {
     var b = e.target.closest('[data-mode]');
@@ -73,12 +73,8 @@
     st.sigId = 'custom';
     st.custom.expr = expr;
     st.custom.window = parseFloat(document.getElementById('customWindow').value);
-    var ps = {};
-    (document.getElementById('customParams').value || '').split(',').forEach(function (kv) {
-      var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
-      if (m) ps[m[1]] = parseFloat(m[2]);
-    });
-    st.custom.params = ps;
+    // 参数保持原始字符串，由 buildCustomLayer 统一解析（与初始 state.custom.params 同类型）
+    st.custom.params = document.getElementById('customParams').value;
     FT.Lab.pick('custom');
     UI.closeDrawer();
     UI.toast('已载入自定义信号');

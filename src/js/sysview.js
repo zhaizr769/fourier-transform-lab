@@ -12,24 +12,24 @@
   var SYSTEMS = [
     {
       id: 'idealLP', name: '理想低通（幅度 1，截止 W）',
-      formula: 'H(j\\Wv)=\\begin{cases}1, & |\\Wv|<W\\\\ 0, & |\\Wv|>W\\end{cases}',
+      formula: 'H(jω) = 1 (|ω|<W),  0 (|ω|>W)',
       params: [{ key: 'W', label: 'W', min: 0.5, max: 14, step: 0.1, def: 4, desc: '截止角频率' }],
       H: function (w, p, o) { o[0] = Math.abs(w) < p.W ? 1 : 0; o[1] = 0; },
       note: '理想低通是矩形频率响应 ⟹ 冲激响应是 Sa，非因果、不可实现；方波通过它必然出现 Gibbs 振铃，这正是「带限 = 振铃」的直观展示。'
     },
     {
       id: 'idealHP', name: '理想高通',
-      formula: 'H(j\\Wv)=\\begin{cases}0, & |\\Wv|<W\\\\ 1, & |\\Wv|>W\\end{cases}',
+      formula: 'H(jω) = 0 (|ω|<W),  1 (|ω|>W)',
       params: [{ key: 'W', label: 'W', min: 0.5, max: 14, step: 0.1, def: 3, desc: '截止角频率' }],
       H: function (w, p, o) { o[0] = Math.abs(w) > p.W ? 1 : 0; o[1] = 0; },
       note: '理想高通把直流和低频全部去掉：门函数过后只剩两个尖峰（边缘），也就是微分的效果。'
     },
     {
       id: 'idealBP', name: '理想带通（w₁ ~ w₂）',
-      formula: 'H(j\\Wv)=\\begin{cases}1, & w_{1}<|\\Wv|<w_{2}\\\\ 0, & 其它\\end{cases}',
+      formula: 'H(jω) = 1 (w₁<|ω|<w₂),  0 (其它)',
       params: [
-        { key: 'w1', label: 'w_{1}', min: 0.2, max: 8, step: 0.1, def: 2, desc: '下边' },
-        { key: 'w2', label: 'w_{2}', min: 1, max: 16, step: 0.1, def: 6, desc: '上边' }
+        { key: 'w1', label: 'w₁', min: 0.2, max: 8, step: 0.1, def: 2, desc: '下边' },
+        { key: 'w2', label: 'w₂', min: 1, max: 16, step: 0.1, def: 6, desc: '上边' }
       ],
       H: function (w, p, o) { var a = Math.abs(w); o[0] = (a > p.w1 && a < p.w2) ? 1 : 0; o[1] = 0; },
       note: '带通滤掉直流与低频，也滤掉高频，只留中间一段 —— 课件 slide 60「中心频率可变的带通滤波器」就是用它 + 移频做出来的。'
@@ -60,7 +60,7 @@
     },
     {
       id: 'diff', name: '微分器 H = jω',
-      formula: 'H(j\\Wv)=j\\Wv',
+      formula: 'H(jω) = jω',
       params: [],
       H: function (w, p, o) { o[0] = 0; o[1] = w; },
       note: '幅度随 |ω| 线性上升 ⟹ 高频噪声被放大；相位恒为 π/2·sgn(ω)（一个理想的 90° 移相器）。'
@@ -73,18 +73,18 @@
       note: '低频增益发散（ω→0 时 1/|ω|→∞），所以纯积分器对直流是不稳定的；相位恒为 −π/2·sgn(ω)。'
     },
     {
-      id: 'delay', name: '纯延时（全通）H = e^{−jωt₀}',
-      formula: 'H(j\\Wv)=e^{-j\\Wv t_{0}}',
-      params: [{ key: 't0', label: 't_{0}', min: -4, max: 4, step: 0.1, def: 1.5, desc: '延时' }],
+      id: 'delay', name: '纯延时（全通）',
+      formula: 'H(jω) = e^{-jωt₀}',
+      params: [{ key: 't0', label: 't₀', min: -4, max: 4, step: 0.1, def: 1.5, desc: '延时' }],
       H: function (w, p, o) { o[0] = Math.cos(-w * p.t0); o[1] = Math.sin(-w * p.t0); },
       note: '幅度恒 1、相位是过原点的斜直线 —— 线性相位系统不产生波形失真，只把信号整体平移。这是「无失真传输」的第二个条件。'
     },
     {
       id: 'linphaseLP', name: '线性相位低通（带延时）',
-      formula: 'H(j\\Wv)=\\begin{cases}e^{-j\\Wv t_{0}}, & |\\Wv|<W\\\\ 0, & 其它\\end{cases}',
+      formula: 'H(jω) = e^{-jωt₀} (|ω|<W),  0 (其它)',
       params: [
         { key: 'W', label: 'W', min: 1, max: 14, step: 0.1, def: 5, desc: '截止' },
-        { key: 't0', label: 't_{0}', min: 0, max: 4, step: 0.1, def: 1.5, desc: '群延时' }
+        { key: 't0', label: 't₀', min: 0, max: 4, step: 0.1, def: 1.5, desc: '群延时' }
       ],
       H: function (w, p, o) {
         if (Math.abs(w) > p.W) { o[0] = 0; o[1] = 0; return; }
@@ -318,10 +318,10 @@
     var numStr = coefStr(st.num), denStr = coefStr(st.den);
     var html = '';
     if (st.kind === 'rational') {
-      html += 'H(jω) = [' + polyText(st.num) + '] / [' + polyText(st.den) + ']';
-      html += '<div class="ode-eq">' + odeText(st.num, st.den) + '</div>';
+      html += UI.renderMath('H(jω) = [' + polyText(st.num) + '] / [' + polyText(st.den) + ']');
+      html += '<div class="ode-eq">' + UI.renderMath(odeText(st.num, st.den)) + '</div>';
     } else {
-      html += S.formula;
+      html += UI.renderMath(S.formula);
     }
     html += '<div class="pair">h(t)  H(jω)</div>';
     box.innerHTML = html;
@@ -405,7 +405,7 @@
     });
     var box = UI.el('div', { class: 'range-box' });
     box.appendChild(UI.el('div', { class: 'glabel', text: '显示范围' }));
-    box.appendChild(UI.sliderRow({ key: 'wmax', label: '\\omega_{max}', min: 6, max: 60, step: 1, def: 20, desc: 'rad/s' },
+    box.appendChild(UI.sliderRow({ key: 'wmax', label: 'ω_{max}', min: 6, max: 60, step: 1, def: 20, desc: 'rad/s' },
       Sys.state.wmax, function (v) { Sys.state.wmax = v; recompute(); }));
     box.appendChild(UI.sliderRow({ key: 'tmax', label: 'T_{max}', min: 4, max: 40, step: 1, def: 12, desc: 's' },
       Sys.state.tmax, function (v) { Sys.state.tmax = v; recompute(); }));

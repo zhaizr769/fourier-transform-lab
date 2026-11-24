@@ -40,7 +40,7 @@
   UI.sliderRow = function (cfg, value, onInput) {
     var wrap = UI.el('div', { class: 'param-row' });
     var lab = UI.el('label');
-    lab.appendChild(UI.el('span', { class: 'pname', textContent: cfg.label || cfg.key }));
+    lab.appendChild(UI.el('span', { class: 'pname', html: UI.renderMath(cfg.label || cfg.key) }));
     var right = UI.el('span', {}, [
       cfg.desc ? UI.el('span', { class: 'pdesc', text: cfg.desc }) : null,
       UI.el('span', { class: 'pnum' })
@@ -76,16 +76,13 @@
 
   /* -------------------------------------------------------------- 芯片 */
   UI.chip = function (text, mx, active, onClick, wide) {
-    console.log('[UI] chip: creating chip for', text, 'onClick=', typeof onClick);
     var b = UI.el('button', { class: 'chip' + (active ? ' active' : '') + (wide ? ' chip-wide' : ''), type: 'button', onclick: onClick });
-    console.log('[UI] chip: button created, has click listener');
     b.appendChild(UI.el('span', { class: 'chip-name', text: text }));
     if (mx) {
-      // mx 已经是纯文本，直接显示
-      b.appendChild(UI.el('span', { class: 'chip-mx', text: mx }));
+      b.appendChild(UI.el('span', { class: 'chip-mx', html: UI.renderMath(mx) }));
     }
     b.setText = function (t) { b.querySelector('.chip-name').textContent = t; };
-    b.setMx = function (m) { b.querySelector('.chip-mx').textContent = m; };
+    b.setMx = function (m) { b.querySelector('.chip-mx').innerHTML = UI.renderMath(m); };
     b.setActive = function (v) { b.classList.toggle('active', !!v); };
     return b;
   };
@@ -165,13 +162,15 @@
   /* 简单数学公式渲染：把 _{} ^{} 转换为 HTML 上下标 */
   UI.renderMath = function (text) {
     if (!text) return '';
-    // 替换 _{...} 为 <sub>...</sub>
-    text = String(text).replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
-    // 替换 ^{...} 为 <sup>...</sup>
+    // 先转义，再插入 <sub>/<sup>：顺序反了会把 |t|<T₁ 里的 <T₁ 当标签吃掉
+    text = String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    text = text.replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
     text = text.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
-    // 替换单个 _x 和 ^x（如果后面没有 {）
-    text = text.replace(/_([a-zA-Z0-9])/g, '<sub>$1</sub>');
-    text = text.replace(/\^([a-zA-Z0-9])/g, '<sup>$1</sup>');
+    text = text.replace(/_([a-zA-Z0-9\u00C0-\uFFFF])/g, '<sub>$1</sub>');
+    text = text.replace(/\^([a-zA-Z0-9\u00C0-\uFFFF])/g, '<sup>$1</sup>');
     return text;
   };
 

@@ -68,7 +68,7 @@
   };
 
   SIG.teexp = {
-    group: 'nonperiodic', name: 't·e^{-at}u(t)', order: 4, kind: 'energy',
+    group: 'nonperiodic', name: '衰减斜坡', order: 4, kind: 'energy',
     formulaT: 't·e^{-at}u(t)',
     formulaX: '1/(a+jω)²',
     params: [{ key: 'a', label: 'a', min: 0.2, max: 6, step: 0.1, def: 1, desc: '衰减系数 a>0' }],
@@ -87,7 +87,7 @@
   };
 
   SIG.tnexp = {
-    group: 'nonperiodic', name: 't^{n-1}/(n-1)!·e^{-at}u(t)', order: 5, kind: 'energy',
+    group: 'nonperiodic', name: 'n 阶衰减', order: 5, kind: 'energy',
     formulaT: '[t^{n-1}/(n-1)!]·e^{-at}u(t)',
     formulaX: '1/(a+jω)^n',
     params: [
@@ -119,7 +119,7 @@
 
   SIG.gate = {
     group: 'nonperiodic', name: '矩形脉冲', order: 6, kind: 'energy',
-    formulaT: '门函数：|t|<T₁ 时为 1，否则为 0',
+    formulaT: 'g_{2T₁}(t)',
     formulaX: '2T₁·Sa(ωT₁)',
     params: [{ key: 'T1', label: 'T₁', min: 0.2, max: 6, step: 0.1, def: 1, desc: '半宽度 T₁' }],
     window: { tmax: 10, wmax: 20 },
@@ -134,7 +134,7 @@
 
   SIG.tri = {
     group: 'nonperiodic', name: '三角脉冲', order: 7, kind: 'energy',
-    formulaT: 'Λ(t/τ)：|t|<τ 时为 1-|t|/τ，否则为 0',
+    formulaT: 'Λ(t/τ)',
     formulaX: 'τ·Sa²(ωτ/2)',
     params: [{ key: 'tau', label: 'τ', min: 0.4, max: 8, step: 0.1, def: 2, desc: '半底宽 τ' }],
     window: { tmax: 10, wmax: 20 },
@@ -254,7 +254,7 @@
      ================================================================ */
 
   SIG.cexp = {
-    group: 'periodic', name: '复指数 e^{jω₀t}', order: 15, kind: 'power',
+    group: 'periodic', name: '复指数', order: 15, kind: 'power',
     formulaT: 'e^{jω₀t}',
     formulaX: '2πδ(ω-ω₀)',
     params: [{ key: 'w0', label: 'ω₀', min: 0.5, max: 12, step: 0.1, def: 4, desc: '角频率 ω₀' }],
@@ -316,18 +316,18 @@
           for (var k = -n; k <= n; k++) out.push({ t: k * T, re: 1, im: 0 });
           return out;
         })(),
-        wimp: (function () {
+        wimp: function () {
           var out = [], n = Math.ceil(20 / w0);
           for (var k = -n; k <= n; k++) out.push({ w: k * w0, re: TAU / T, im: 0 });
           return out;
-        })()
+        }
       };
     }
   };
 
   SIG.periodicRect = {
     group: 'periodic', name: '周期矩形脉冲', order: 19, kind: 'power',
-    formulaT: '周期矩形：|t|<T₁ 时为 1，T₁<|t|≤T₀/2 时为 0',
+    formulaT: 'Σ_{n} g_{2T₁}(t-nT₀)',
     formulaX: '(2π/T₀)Σ[sin(kω₀T₁)/(kπ)]·δ(ω-kω₀)',
     params: [
       { key: 'T0', label: 'T₀', min: 2, max: 12, step: 0.5, def: 6, desc: '周期 T₀' },
@@ -343,14 +343,14 @@
           o[1] = 0;
         },
         Xfn: ZERO,
-        wimp: (function () {
+        wimp: function () {
           var out = [], n = Math.ceil(20 / w0);
           for (var k = -n; k <= n; k++) {
             var ak = k === 0 ? 2 * T1 / T0 : Math.sin(k * w0 * T1) / (k * PI);
             out.push({ w: k * w0, re: TAU * ak / T0, im: 0 });
           }
           return out;
-        })()
+        }
       };
     }
   };
@@ -417,6 +417,10 @@
       };
     }
   };
+
+  /* 信号对象本身不带 id，统一用 SIG 的键补上，选择器/变换对/性质表都靠它定位 */
+  Object.keys(SIG).forEach(function (k) { SIG[k].id = k; });
+  SIG.custom.custom = true;
 
   /* --------------------------------------------------------------- 工具 */
   FT.getSignal = function (id) { return SIG[id] || null; };
