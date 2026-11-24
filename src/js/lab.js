@@ -30,14 +30,64 @@
   var charts = {};
   var lastRender = null, lastBase = null;
 
-  /* ------------------------------------------------------------ 变量哨兵
-     \Tv = 运行时间变量 t，\Wv = 运行频率变量 ω；
-     参数（\omega_0、T_1…）保持原样，替换时只动哨兵，公式就能正确逐层复合。
+  /* ------------------------------------------------------------ 公式复合
+     逐层复合公式时只替换真正的自变量：紧跟下标的（ω₀、t₀…）是参数，
+     标识符里的字母（tri、gate、step）也不是变量，所以替换要按上下文判断。
+     sub 用于频率变量 ω，subT 用于时间变量 t。
   ---------------------------------------------------------------- */
-  function sub(tok, repl, latex) { return String(latex).split(tok).join(repl); }
+  var GUARD = '₀₁₂₃₄₅₆₇₈₉_' + String.fromCharCode(1);
+
+  /* 只替换裸变量：紧跟下标的（ω₀、t₀、T₀…）是参数而不是变量。
+     末尾补一个哨兵字符，好让正则能取到最后一个字符后面的「下一个字符」。 */
+  function sub(tok, repl, latex) {
+    var re = new RegExp(tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(.)', 'g');
+    var s = String(latex) + String.fromCharCode(1);
+    s = s.replace(re, function (m, after) { return GUARD.indexOf(after) >= 0 ? m : repl + after; });
+    return s.slice(0, -1);
+  }
+
+  var SUBSCRIPT = '₀₁₂₃₄₅₆₇₈₉';
+
+  /* 时间自变量的替换：
+     · 标识符里的 t（tri、gate、step）与带下标的参数 t₀ 都不动；
+     · 隐式相乘处补括号：ω₀t → ω₀(t-1.5)，-at → -a(t-1.5)；
+     · u(t) 这种「括号里只有一个 t」直接内联，不产生多余括号。
+     哨兵 \Tv 先归一化成 t，链式复合时每步都替换最内层那个真正的自变量。 */
+  function subT(expr, repl) {
+    var s = String(expr).split('\\Tv').join('t'), out = '';
+    for (var i = 0; i < s.length; i++) {
+      if (s.charAt(i) !== 't') { out += s.charAt(i); continue; }
+      var prev = i ? s.charAt(i - 1) : '', next = i + 1 < s.length ? s.charAt(i + 1) : '';
+      if (/[A-Za-z0-9]/.test(next) || SUBSCRIPT.indexOf(next) >= 0 || prev === 'd') { out += 't'; continue; }
+      if (prev === '(' && next === ')') { out += repl; continue; }
+      var coef = (/[A-Za-z0-9]/.test(prev) || SUBSCRIPT.indexOf(prev) >= 0) && prev !== '(';
+      var prec = next === '*' || next === '/' || next === '^';
+      out += (coef || prec) ? '(' + repl + ')' : repl;
+    }
+    return out;
+  }
+
+  /* x(t-t₀) 里的符号项：t₀ 为负时写成 +|t₀|，避免「t--2.5」 */
+  function shifted(replBase, v) {
+    var a = Math.abs(v);
+    return v >= 0 ? replBase + '-' + UI.trim(a) : replBase + '+' + UI.trim(a);
+  }
   function wrap(inner, tpl, vars) {
     Object.keys(vars).forEach(function (k) { tpl = tpl.split('{' + k + '}').join(vars[k]); });
     return tpl.replace(/\{IN\}/g, inner);
+  }
+
+  /* 指数因子写成数值形式（e^{-j1.5ω}），这样链式复合时不会跟信号自带的 t₀/ω₀ 撞名 */
+  function expFactor(v, sym) {
+    if (Math.abs(v) < 1e-12) return '';
+    var s = UI.trim(Math.abs(v));
+    return '·e^{' + (v > 0 ? '-' : '') + 'j' + (s === '1' ? '' : s) + sym + '}';
+  }
+
+  /* 频域平移写成数值形式：X[j(ω-ω₀)]，ω₀ 为负时化成 (ω+|ω₀|)，不会出现 (ω--3) */
+  function movedTerm(v) {
+    var s = UI.trim(Math.abs(v));
+    return v > 0 ? '(ω-' + s + ')' : v < 0 ? '(ω+' + s + ')' : 'ω';
   }
 
   /* --------------------------------------------------------- 构造基础层 */
@@ -132,29 +182,28 @@
     var P = FT.PROP;
     P.shift.compose = function (e, p) {
       return {
-        t: sub('\\Tv', '(\\Tv-' + UI.trim(p.t0) + ')', e.tExpr),
-        X: e.xExpr + '·e^{-jωt₀}'
+        t: subT(e.tExpr, shifted('t', p.t0)),
+        X: e.xExpr + expFactor(p.t0, 'ω')
       };
     };
     P.reverse.compose = function (e) {
-      return { t: sub('\\Tv', '-\\Tv', e.tExpr), X: sub('ω', '-ω', e.xExpr) };
+      return { t: subT(e.tExpr, '-t'), X: sub('ω', '(-ω)', e.xExpr) };
     };
     P.scale.compose = function (e, p) {
       var a = UI.trim(p.a);
       return {
-        t: sub('\\Tv', a + '\\Tv', e.tExpr),
-        X: '(1/' + Math.abs(p.a).toFixed(2) + ')[' + sub('ω', 'ω/' + a, e.xExpr) + ']'
+        t: subT(e.tExpr, a + 't'),
+        X: '(1/' + Math.abs(p.a).toFixed(2) + ')[' + sub('ω', '(ω/' + a + ')', e.xExpr) + ']'
       };
     };
     P.freqshift.compose = function (e, p) {
-      var w = UI.trim(p.w0);
       return {
-        t: e.tExpr + '·e^{jω₀t}',
-        X: sub('ω', '(ω-' + w + ')', e.xExpr)
+        t: e.tExpr + expFactor(-p.w0, 't'),
+        X: sub('ω', movedTerm(p.w0), e.xExpr)
       };
     };
     P.conj.compose = function (e) {
-      return { t: '[' + e.tExpr + ']*', X: '[' + sub('ω', '-ω', e.xExpr) + ']*' };
+      return { t: '[' + e.tExpr + ']*', X: '[' + sub('ω', '(-ω)', e.xExpr) + ']*' };
     };
     P.diff.compose = function (e) {
       return { t: 'd/dt[' + e.tExpr + ']', X: 'jω[' + e.xExpr + ']' };
@@ -172,7 +221,7 @@
       var w = UI.trim(p.w0);
       return {
         t: 'cos(' + w + 't)·[' + e.tExpr + ']',
-        X: '(1/2)[' + sub('ω', '(ω-' + w + ')', e.xExpr) + '+' + sub('ω', '(ω+' + w + ')', e.xExpr) + ']'
+        X: '(1/2)[' + sub('ω', movedTerm(p.w0), e.xExpr) + '+' + sub('ω', movedTerm(-p.w0), e.xExpr) + ']'
       };
     };
     P.sample.compose = function (e, p) {
@@ -185,7 +234,7 @@
     P.dual.compose = function (e) {
       return {
         t: sub('ω', 't', e.xExpr),
-        X: '2π[' + sub('t', '-ω', e.tExpr) + ']'
+        X: '2π[' + subT(e.tExpr, '-ω') + ']'
       };
     };
   }
@@ -294,8 +343,10 @@
     /* 能量 / 功率 */
     var eT = trapz(r.t, sq(r.xre, r.xim));
     var eW = trapz(w, sq(Xre, Xim)) / TAU;
-    out.push({ k: '时域 ∫|x|²dt', v: UI.trim(eT) });
-    out.push({ k: '频域 (1/2π)∫|X|²dω', v: UI.trim(eW) });
+    /* 时域只剩冲激串时 ∫|x|²dt 发散（分布不属于 L²），报 0 是错的 */
+    var comb = r.timp.length > 0 && eT < 1e-12;
+    out.push({ k: '时域 ∫|x|²dt', v: comb ? '—（时域是冲激串，能量发散）' : UI.trim(eT) });
+    out.push({ k: '频域 (1/2π)∫|X|²dω（窗口内）', v: UI.trim(eW) });
 
     /* 对称性检查 */
     var sym = symmetry(r, d);
@@ -380,14 +431,12 @@
   function timeImpulses(r) {
     var o = Lab.state.opts;
     if (!o.impulses || !r.timp.length) return [];
-    var peak = maxAbs(r.xre) || 1;
-    var ref = Math.max(peak, maxAbsOfImp(r.timp));
     return r.timp.map(function (q) {
       var h = Math.hypot(q.re, q.im);
       return {
-        x: q.t, y: h * (ref > 0 ? 1 : 1),
+        x: q.t, y: h,
         color: q.order ? C.danger : C.x,
-        label: q.order ? 'δ′' : '1',
+        label: q.order ? 'δ′' : UI.trim(h),
         width: q.order ? 1.6 : 2
       };
     });

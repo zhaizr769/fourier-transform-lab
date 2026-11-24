@@ -328,7 +328,7 @@
   SIG.periodicRect = {
     group: 'periodic', name: '周期矩形脉冲', order: 19, kind: 'power',
     formulaT: 'Σ_{n} g_{2T₁}(t-nT₀)',
-    formulaX: '(2π/T₀)Σ[sin(kω₀T₁)/(kπ)]·δ(ω-kω₀)',
+    formulaX: '2π Σ_{k=-∞}^{∞} [sin(kω₀T₁)/(kπ)] δ(ω-kω₀)',
     params: [
       { key: 'T0', label: 'T₀', min: 2, max: 12, step: 0.5, def: 6, desc: '周期 T₀' },
       { key: 'T1', label: 'T₁', min: 0.2, max: 4, step: 0.1, def: 1, desc: '脉冲半宽 T₁' }
@@ -338,7 +338,8 @@
       var T0 = p.T0, T1 = p.T1, w0 = TAU / T0;
       return {
         xfn: function (t, o) {
-          var tm = ((t % T0) + T0) % T0 - T0 / 2;
+          var tm = ((t % T0) + T0) % T0;          /* 脉冲居中于 nT₀，与 Σ g_{2T₁}(t-nT₀) 及实系数 a_k 一致 */
+          if (tm > T0 / 2) tm -= T0;
           o[0] = Math.abs(tm) < T1 ? 1 : 0;
           o[1] = 0;
         },
@@ -347,7 +348,7 @@
           var out = [], n = Math.ceil(20 / w0);
           for (var k = -n; k <= n; k++) {
             var ak = k === 0 ? 2 * T1 / T0 : Math.sin(k * w0 * T1) / (k * PI);
-            out.push({ w: k * w0, re: TAU * ak / T0, im: 0 });
+            out.push({ w: k * w0, re: TAU * ak, im: 0 });
           }
           return out;
         }

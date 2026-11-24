@@ -265,8 +265,8 @@
           }).filter(function (q) { return Math.abs(q.w) <= W; });
         },
         {
-          opName: '对偶性', opFormula: 'X(jt)  2πx(-ω)',
-          note: '对偶把「时域矩形 ⟷ 频域 Sa」和「时域 Sa ⟷ 频域矩形」看成同一件事的两面。带冲激谱线的信号对偶后变成时域冲激串。'
+          opName: '对偶性', opFormula: 'X(jt)  2πx(-ω)', specOnly: true,
+          note: '对偶把「时域矩形 ⟷ 频域 Sa」和「时域 Sa ⟷ 频域矩形」看成同一件事的两面。带冲激谱线的信号对偶后变成时域冲激串，箭头高度就是那根谱线的强度。'
         }
       );
     }
