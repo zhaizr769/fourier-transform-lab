@@ -482,7 +482,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       <div class="brand-mark" aria-hidden="true">&#8747;</div>
       <div class="brand-text">
         <h1>信号与系统 · 连续时间傅里叶变换</h1>
-        <p>第四章 可视化实验台 &nbsp;·&nbsp; 时域波形 / 幅度谱 / 相位谱 / 变换前后对比</p>
+        <p>第四章 可视化实验台 &nbsp;·&nbsp; 时域 / 频域 / 相位谱 / 变换前后对比</p>
       </div>
     </div>
 
@@ -564,7 +564,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           <div class="charts-grid">
             <div class="chart-card">
               <div class="chart-head">
-                <div class="chart-title"><span class="dot dot-x"></span>时域波形 <em>x(t)</em></div>
+                <div class="chart-title"><span class="dot dot-x"></span>时域 <em>x(t)</em></div>
                 <div class="chart-sub" id="subTime"></div>
                 <div class="chart-actions">
                   <button class="btn btn-tiny" data-act="zoomfit" data-chart="time">自适应</button>
@@ -576,7 +576,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
             <div class="chart-card">
               <div class="chart-head">
-                <div class="chart-title"><span class="dot dot-mag"></span>幅度谱 <em>|X(jω)|</em></div>
+                <div class="chart-title"><span class="dot dot-mag"></span>频域 <em>|X(jω)|</em></div>
                 <div class="chart-sub" id="subMag"></div>
                 <div class="chart-actions">
                   <button class="btn btn-tiny" data-act="zoomfit" data-chart="mag">自适应</button>
@@ -645,7 +645,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       <div class="table-wrap">
         <table class="pairs-table">
           <thead>
-            <tr><th>信号 x(t)</th><th>傅里叶变换 X(jω)</th><th>傅里叶级数系数（若为周期）</th><th>时域</th><th>幅度谱</th></tr>
+            <tr><th>信号 x(t)</th><th>傅里叶变换 X(jω)</th><th>傅里叶级数系数（若为周期）</th><th>时域</th><th>频域</th></tr>
           </thead>
           <tbody id="pairsBody"></tbody>
         </table>
@@ -1595,7 +1595,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   };
 
   SIG.teexp = {
-    group: 'nonperiodic', name: 't·e^{-at}u(t)', order: 4, kind: 'energy',
+    group: 'nonperiodic', name: '衰减斜坡', order: 4, kind: 'energy',
     formulaT: 't·e^{-at}u(t)',
     formulaX: '1/(a+jω)²',
     params: [{ key: 'a', label: 'a', min: 0.2, max: 6, step: 0.1, def: 1, desc: '衰减系数 a>0' }],
@@ -1614,7 +1614,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   };
 
   SIG.tnexp = {
-    group: 'nonperiodic', name: 't^{n-1}/(n-1)!·e^{-at}u(t)', order: 5, kind: 'energy',
+    group: 'nonperiodic', name: 'n 阶衰减', order: 5, kind: 'energy',
     formulaT: '[t^{n-1}/(n-1)!]·e^{-at}u(t)',
     formulaX: '1/(a+jω)^n',
     params: [
@@ -1646,7 +1646,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
   SIG.gate = {
     group: 'nonperiodic', name: '矩形脉冲', order: 6, kind: 'energy',
-    formulaT: '门函数：|t|<T₁ 时为 1，否则为 0',
+    formulaT: 'g_{2T₁}(t)',
     formulaX: '2T₁·Sa(ωT₁)',
     params: [{ key: 'T1', label: 'T₁', min: 0.2, max: 6, step: 0.1, def: 1, desc: '半宽度 T₁' }],
     window: { tmax: 10, wmax: 20 },
@@ -1661,7 +1661,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
 
   SIG.tri = {
     group: 'nonperiodic', name: '三角脉冲', order: 7, kind: 'energy',
-    formulaT: 'Λ(t/τ)：|t|<τ 时为 1-|t|/τ，否则为 0',
+    formulaT: 'Λ(t/τ)',
     formulaX: 'τ·Sa²(ωτ/2)',
     params: [{ key: 'tau', label: 'τ', min: 0.4, max: 8, step: 0.1, def: 2, desc: '半底宽 τ' }],
     window: { tmax: 10, wmax: 20 },
@@ -1781,7 +1781,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
      ================================================================ */
 
   SIG.cexp = {
-    group: 'periodic', name: '复指数 e^{jω₀t}', order: 15, kind: 'power',
+    group: 'periodic', name: '复指数', order: 15, kind: 'power',
     formulaT: 'e^{jω₀t}',
     formulaX: '2πδ(ω-ω₀)',
     params: [{ key: 'w0', label: 'ω₀', min: 0.5, max: 12, step: 0.1, def: 4, desc: '角频率 ω₀' }],
@@ -1843,18 +1843,18 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           for (var k = -n; k <= n; k++) out.push({ t: k * T, re: 1, im: 0 });
           return out;
         })(),
-        wimp: (function () {
+        wimp: function () {
           var out = [], n = Math.ceil(20 / w0);
           for (var k = -n; k <= n; k++) out.push({ w: k * w0, re: TAU / T, im: 0 });
           return out;
-        })()
+        }
       };
     }
   };
 
   SIG.periodicRect = {
     group: 'periodic', name: '周期矩形脉冲', order: 19, kind: 'power',
-    formulaT: '周期矩形：|t|<T₁ 时为 1，T₁<|t|≤T₀/2 时为 0',
+    formulaT: 'Σ_{n} g_{2T₁}(t-nT₀)',
     formulaX: '(2π/T₀)Σ[sin(kω₀T₁)/(kπ)]·δ(ω-kω₀)',
     params: [
       { key: 'T0', label: 'T₀', min: 2, max: 12, step: 0.5, def: 6, desc: '周期 T₀' },
@@ -1870,14 +1870,14 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
           o[1] = 0;
         },
         Xfn: ZERO,
-        wimp: (function () {
+        wimp: function () {
           var out = [], n = Math.ceil(20 / w0);
           for (var k = -n; k <= n; k++) {
             var ak = k === 0 ? 2 * T1 / T0 : Math.sin(k * w0 * T1) / (k * PI);
             out.push({ w: k * w0, re: TAU * ak / T0, im: 0 });
           }
           return out;
-        })()
+        }
       };
     }
   };
@@ -1944,6 +1944,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       };
     }
   };
+
+  /* 信号对象本身不带 id，统一用 SIG 的键补上，选择器/变换对/性质表都靠它定位 */
+  Object.keys(SIG).forEach(function (k) { SIG[k].id = k; });
+  SIG.custom.custom = true;
 
   /* --------------------------------------------------------------- 工具 */
   FT.getSignal = function (id) { return SIG[id] || null; };
@@ -2892,7 +2896,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   UI.sliderRow = function (cfg, value, onInput) {
     var wrap = UI.el('div', { class: 'param-row' });
     var lab = UI.el('label');
-    lab.appendChild(UI.el('span', { class: 'pname', textContent: cfg.label || cfg.key }));
+    lab.appendChild(UI.el('span', { class: 'pname', html: UI.renderMath(cfg.label || cfg.key) }));
     var right = UI.el('span', {}, [
       cfg.desc ? UI.el('span', { class: 'pdesc', text: cfg.desc }) : null,
       UI.el('span', { class: 'pnum' })
@@ -2931,11 +2935,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var b = UI.el('button', { class: 'chip' + (active ? ' active' : '') + (wide ? ' chip-wide' : ''), type: 'button', onclick: onClick });
     b.appendChild(UI.el('span', { class: 'chip-name', text: text }));
     if (mx) {
-      // mx 已经是纯文本，直接显示
-      b.appendChild(UI.el('span', { class: 'chip-mx', text: mx }));
+      b.appendChild(UI.el('span', { class: 'chip-mx', html: UI.renderMath(mx) }));
     }
     b.setText = function (t) { b.querySelector('.chip-name').textContent = t; };
-    b.setMx = function (m) { b.querySelector('.chip-mx').textContent = m; };
+    b.setMx = function (m) { b.querySelector('.chip-mx').innerHTML = UI.renderMath(m); };
     b.setActive = function (v) { b.classList.toggle('active', !!v); };
     return b;
   };
@@ -3012,6 +3015,21 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   /* 生成一组等间距 x 网格 */
   UI.grid = function (a, b, n) { return global.FT.linspace(a, b, n); };
 
+  /* 简单数学公式渲染：把 _{} ^{} 转换为 HTML 上下标 */
+  UI.renderMath = function (text) {
+    if (!text) return '';
+    // 先转义，再插入 <sub>/<sup>：顺序反了会把 |t|<T₁ 里的 <T₁ 当标签吃掉
+    text = String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    text = text.replace(/_\{([^}]+)\}/g, '<sub>$1</sub>');
+    text = text.replace(/\^\{([^}]+)\}/g, '<sup>$1</sup>');
+    text = text.replace(/_([a-zA-Z0-9\u00C0-\uFFFF])/g, '<sub>$1</sub>');
+    text = text.replace(/\^([a-zA-Z0-9\u00C0-\uFFFF])/g, '<sup>$1</sup>');
+    return text;
+  };
+
 })(window);
 
 
@@ -3073,10 +3091,15 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var fn;
     try { fn = FT.compile(c.expr); } catch (e) { return { error: e.message }; }
     var pv = {};
-    (c.params || '').split(',').forEach(function (kv) {
-      var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
-      if (m) pv[m[1]] = parseFloat(m[2]);
-    });
+    var raw = c.params;
+    if (typeof raw === 'string') {
+      raw.split(',').forEach(function (kv) {
+        var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
+        if (m) pv[m[1]] = parseFloat(m[2]);
+      });
+    } else if (raw) {
+      Object.keys(raw).forEach(function (k) { pv[k] = +raw[k]; });
+    }
     var Wt = c.window;
     var n = 4001;
     var tg = FT.linspace(-Wt, Wt, n);
@@ -3458,16 +3481,16 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tag = document.getElementById('formulaTag');
 
     var tExpr = res.tExpr, xExpr = res.xExpr;
-    // 直接显示文本，不使用 MML 渲染
-    main.innerHTML = '<span class="mx">y(t) = ' + escapeHtml(tExpr) + '</span>' +
-      '<span class="arrow">⟷</span><span class="mx">Y(jω) = ' + escapeHtml(xExpr) + '</span>';
+    // 使用 UI.renderMath 渲染公式，支持上下标（renderMath 已经处理了转义）
+    main.innerHTML = '<span class="mx">y(t) = ' + UI.renderMath(tExpr) + '</span>' +
+      '<span class="arrow"></span><span class="mx">Y(jω) = ' + UI.renderMath(xExpr) + '</span>';
     tag.textContent = st.chain.length ? st.chain.map(function (c) { return FT.propById(c.id).name; }).join(' → ') : '未加变换';
 
     if (st.chain.length) {
       rule.innerHTML = st.chain.map(function (c, i) {
         var op = FT.propById(c.id);
         var pv = Object.keys(c.params).map(function (k) { return k + '=' + UI.trim(c.params[k]); }).join(', ');
-        return '<span class="chainf">' + (i + 1) + '. ' + escapeHtml(op.formula) + (pv ? ' <span class="hint">（' + pv + '）</span>' : '') + '</span>';
+        return '<span class="chainf">' + (i + 1) + '. ' + UI.renderMath(op.formula) + (pv ? ' <span class="hint">（' + pv + '）</span>' : '') + '</span>';
       }).join('');
     } else {
       rule.innerHTML = '<span class="hint">在左边「性质变换」里点一个性质，看时域与频谱同时怎么变。</span>';
@@ -3578,6 +3601,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     }
     renderSigPicker();
     renderParamRows();
+    renderPropChips();
     Lab.recompute();
   }
 
@@ -3653,7 +3677,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       step.appendChild(UI.el('span', { class: 'idx', text: String(idx + 1) }));
       var body = UI.el('div', { class: 'body' });
       body.appendChild(UI.el('span', { class: 'nm', text: op.name + ' ' + op.sec }));
-      body.appendChild(UI.el('span', { class: 'mx', textContent: op.formula }));
+      body.appendChild(UI.el('span', { class: 'mx', html: UI.renderMath(op.formula) }));
       step.appendChild(body);
       var rm = UI.el('button', { class: 'rm', title: '移除', text: '✕', onclick: function () { st.chain.splice(idx, 1); renderPropChips(); Lab.recompute(); } });
       step.appendChild(rm);
@@ -3782,14 +3806,14 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       formula: 'x₁(t)x₂(t)  (1/2π)[X₁(jω)*X₂(jω)]',
       quote: '通信传输的基础。',
       desc: '和卷积性质正好对偶，注意前面那个 1/2π。时域相乘 = 频谱搬移/混叠，调制、解调、采样定理都建立在这一条上。',
-      link: 'mod'
+      link: 'lab'  // 相乘性质在实验台中通过频移+叠加实现
     },
     {
       id: 'parseval', name: '帕塞瓦尔定理', en: 'Parseval', sec: '4.3.8',
       formula: '∫_{-∞}^{+∞}|x(t)|²dt = (1/2π)∫_{-∞}^{+∞}|X(jω)|²dω',
       quote: '自然定律，能量守恒。',
       desc: '时域能量等于频域能量除以 2π。它给了「频谱密度」一个物理单位，也是噪声带宽、3 dB 带宽这些工程概念的依据。',
-      link: 'topics'
+      link: 'lab'  // 帕塞瓦尔定理可在实验台通过能量计算验证
     },
     {
       id: 'sym', name: '共轭对称性', en: 'Conjugate Symmetry', sec: '4.3.3',
@@ -3830,7 +3854,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-en', text: op.en }));
     card.appendChild(top);
 
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: op.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', html: UI.renderMath(op.formula) }));
     if (op.quote) card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + op.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: op.desc || '' }));
 
@@ -3844,7 +3868,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       return cv;
     };
     var cvT = mk(['时域 x(t)', '灰=前 / 蓝=后']);
-    var cvM = mk(['幅度谱 |X(jω)|', '灰=前 / 橙=后']);
+    var cvM = mk(['频域 |X(jω)|', '灰=前 / 橙=后']);
     var cvP = mk(['相位谱 ∠X(jω)', '灰=前 / 紫=后']);
     card.appendChild(demoBox);
 
@@ -3927,7 +3951,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     top.appendChild(UI.el('span', { class: 'prop-name', text: e.name }));
     top.appendChild(UI.el('span', { class: 'prop-en', text: e.en }));
     card.appendChild(top);
-    card.appendChild(UI.el('div', { class: 'prop-formula', textContent: e.formula }));
+    card.appendChild(UI.el('div', { class: 'prop-formula', html: UI.renderMath(e.formula) }));
     card.appendChild(UI.el('div', { class: 'prop-quote', text: '“' + e.quote + '”' }));
     card.appendChild(UI.el('div', { class: 'prop-desc', text: e.desc }));
     var foot = UI.el('div', { class: 'prop-foot' });
@@ -3991,7 +4015,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var tr = UI.el('tr');
     var tdT = UI.el('td');
     var btn = UI.el('button', { class: 'siglink', title: '点我在实验台打开', text: '' });
-    btn.textContent = sig.formulaT;
+    btn.innerHTML = UI.renderMath(sig.formulaT);
     btn.addEventListener('click', function () {
       FT.Lab.pick(sig.id);
       FT.UI.go('lab');
@@ -4002,11 +4026,11 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     tr.appendChild(tdT);
 
     var tdX = UI.el('td');
-    tdX.textContent = sig.formulaX;
+    tdX.innerHTML = UI.renderMath(sig.formulaX);
     tr.appendChild(tdX);
 
     var tdA = UI.el('td');
-    tdA.textContent = sig.formulaA || '—';
+    tdA.innerHTML = sig.formulaA ? UI.renderMath(sig.formulaA) : '<span class="hint">—</span>';
     tr.appendChild(tdA);
 
     if (showSpark) {
@@ -4046,7 +4070,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
        '2π Σ_{k=-∞}^{+∞} a_k δ(ω-kω₀)',
        'a_k'].map(function (f) {
         var td = UI.el('td');
-        td.textContent = f;
+        td.innerHTML = UI.renderMath(f);
         head.appendChild(td);
       });
       if (showSpark) { head.appendChild(UI.el('td')); head.appendChild(UI.el('td')); }
@@ -4085,24 +4109,24 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   var SYSTEMS = [
     {
       id: 'idealLP', name: '理想低通（幅度 1，截止 W）',
-      formula: 'H(j\\Wv)=\\begin{cases}1, & |\\Wv|<W\\\\ 0, & |\\Wv|>W\\end{cases}',
+      formula: 'H(jω) = 1 (|ω|<W),  0 (|ω|>W)',
       params: [{ key: 'W', label: 'W', min: 0.5, max: 14, step: 0.1, def: 4, desc: '截止角频率' }],
       H: function (w, p, o) { o[0] = Math.abs(w) < p.W ? 1 : 0; o[1] = 0; },
       note: '理想低通是矩形频率响应 ⟹ 冲激响应是 Sa，非因果、不可实现；方波通过它必然出现 Gibbs 振铃，这正是「带限 = 振铃」的直观展示。'
     },
     {
       id: 'idealHP', name: '理想高通',
-      formula: 'H(j\\Wv)=\\begin{cases}0, & |\\Wv|<W\\\\ 1, & |\\Wv|>W\\end{cases}',
+      formula: 'H(jω) = 0 (|ω|<W),  1 (|ω|>W)',
       params: [{ key: 'W', label: 'W', min: 0.5, max: 14, step: 0.1, def: 3, desc: '截止角频率' }],
       H: function (w, p, o) { o[0] = Math.abs(w) > p.W ? 1 : 0; o[1] = 0; },
       note: '理想高通把直流和低频全部去掉：门函数过后只剩两个尖峰（边缘），也就是微分的效果。'
     },
     {
       id: 'idealBP', name: '理想带通（w₁ ~ w₂）',
-      formula: 'H(j\\Wv)=\\begin{cases}1, & w_{1}<|\\Wv|<w_{2}\\\\ 0, & 其它\\end{cases}',
+      formula: 'H(jω) = 1 (w₁<|ω|<w₂),  0 (其它)',
       params: [
-        { key: 'w1', label: 'w_{1}', min: 0.2, max: 8, step: 0.1, def: 2, desc: '下边' },
-        { key: 'w2', label: 'w_{2}', min: 1, max: 16, step: 0.1, def: 6, desc: '上边' }
+        { key: 'w1', label: 'w₁', min: 0.2, max: 8, step: 0.1, def: 2, desc: '下边' },
+        { key: 'w2', label: 'w₂', min: 1, max: 16, step: 0.1, def: 6, desc: '上边' }
       ],
       H: function (w, p, o) { var a = Math.abs(w); o[0] = (a > p.w1 && a < p.w2) ? 1 : 0; o[1] = 0; },
       note: '带通滤掉直流与低频，也滤掉高频，只留中间一段 —— 课件 slide 60「中心频率可变的带通滤波器」就是用它 + 移频做出来的。'
@@ -4133,7 +4157,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     },
     {
       id: 'diff', name: '微分器 H = jω',
-      formula: 'H(j\\Wv)=j\\Wv',
+      formula: 'H(jω) = jω',
       params: [],
       H: function (w, p, o) { o[0] = 0; o[1] = w; },
       note: '幅度随 |ω| 线性上升 ⟹ 高频噪声被放大；相位恒为 π/2·sgn(ω)（一个理想的 90° 移相器）。'
@@ -4146,18 +4170,18 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
       note: '低频增益发散（ω→0 时 1/|ω|→∞），所以纯积分器对直流是不稳定的；相位恒为 −π/2·sgn(ω)。'
     },
     {
-      id: 'delay', name: '纯延时（全通）H = e^{−jωt₀}',
-      formula: 'H(j\\Wv)=e^{-j\\Wv t_{0}}',
-      params: [{ key: 't0', label: 't_{0}', min: -4, max: 4, step: 0.1, def: 1.5, desc: '延时' }],
+      id: 'delay', name: '纯延时（全通）',
+      formula: 'H(jω) = e^{-jωt₀}',
+      params: [{ key: 't0', label: 't₀', min: -4, max: 4, step: 0.1, def: 1.5, desc: '延时' }],
       H: function (w, p, o) { o[0] = Math.cos(-w * p.t0); o[1] = Math.sin(-w * p.t0); },
       note: '幅度恒 1、相位是过原点的斜直线 —— 线性相位系统不产生波形失真，只把信号整体平移。这是「无失真传输」的第二个条件。'
     },
     {
       id: 'linphaseLP', name: '线性相位低通（带延时）',
-      formula: 'H(j\\Wv)=\\begin{cases}e^{-j\\Wv t_{0}}, & |\\Wv|<W\\\\ 0, & 其它\\end{cases}',
+      formula: 'H(jω) = e^{-jωt₀} (|ω|<W),  0 (其它)',
       params: [
         { key: 'W', label: 'W', min: 1, max: 14, step: 0.1, def: 5, desc: '截止' },
-        { key: 't0', label: 't_{0}', min: 0, max: 4, step: 0.1, def: 1.5, desc: '群延时' }
+        { key: 't0', label: 't₀', min: 0, max: 4, step: 0.1, def: 1.5, desc: '群延时' }
       ],
       H: function (w, p, o) {
         if (Math.abs(w) > p.W) { o[0] = 0; o[1] = 0; return; }
@@ -4391,10 +4415,10 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     var numStr = coefStr(st.num), denStr = coefStr(st.den);
     var html = '';
     if (st.kind === 'rational') {
-      html += 'H(jω) = [' + polyText(st.num) + '] / [' + polyText(st.den) + ']';
-      html += '<div class="ode-eq">' + odeText(st.num, st.den) + '</div>';
+      html += UI.renderMath('H(jω) = [' + polyText(st.num) + '] / [' + polyText(st.den) + ']');
+      html += '<div class="ode-eq">' + UI.renderMath(odeText(st.num, st.den)) + '</div>';
     } else {
-      html += S.formula;
+      html += UI.renderMath(S.formula);
     }
     html += '<div class="pair">h(t)  H(jω)</div>';
     box.innerHTML = html;
@@ -4478,7 +4502,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     });
     var box = UI.el('div', { class: 'range-box' });
     box.appendChild(UI.el('div', { class: 'glabel', text: '显示范围' }));
-    box.appendChild(UI.sliderRow({ key: 'wmax', label: '\\omega_{max}', min: 6, max: 60, step: 1, def: 20, desc: 'rad/s' },
+    box.appendChild(UI.sliderRow({ key: 'wmax', label: 'ω_{max}', min: 6, max: 60, step: 1, def: 20, desc: 'rad/s' },
       Sys.state.wmax, function (v) { Sys.state.wmax = v; recompute(); }));
     box.appendChild(UI.sliderRow({ key: 'tmax', label: 'T_{max}', min: 4, max: 40, step: 1, def: 12, desc: 's' },
       Sys.state.tmax, function (v) { Sys.state.tmax = v; recompute(); }));
@@ -4568,7 +4592,6 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
   var FT = global.FT, UI = global.UI, M = global.MML;
 
   /* ----------------------------------------------------------- 模式切换 */
-  var UI = global.UI;
   UI.go = function (mode) {
     var btns = document.querySelectorAll('#modeSwitch .mode-btn');
     for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', btns[i].dataset.mode === mode);
@@ -4579,6 +4602,7 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     if (mode === 'sys') FT.Sys && FT.Sys.init();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+  FT.UI = UI;  // 性质表/变换对里的「载入实验台」按钮走 FT.UI.go
 
   document.getElementById('modeSwitch').addEventListener('click', function (e) {
     var b = e.target.closest('[data-mode]');
@@ -4634,12 +4658,8 @@ table.pairs-table{border-collapse:collapse;width:100%;font-size:13px;}
     st.sigId = 'custom';
     st.custom.expr = expr;
     st.custom.window = parseFloat(document.getElementById('customWindow').value);
-    var ps = {};
-    (document.getElementById('customParams').value || '').split(',').forEach(function (kv) {
-      var m = /^\s*([A-Za-z_]\w*)\s*=\s*(-?\d*\.?\d+(?:e[-+]?\d+)?)\s*$/i.exec(kv);
-      if (m) ps[m[1]] = parseFloat(m[2]);
-    });
-    st.custom.params = ps;
+    // 参数保持原始字符串，由 buildCustomLayer 统一解析（与初始 state.custom.params 同类型）
+    st.custom.params = document.getElementById('customParams').value;
     FT.Lab.pick('custom');
     UI.closeDrawer();
     UI.toast('已载入自定义信号');
