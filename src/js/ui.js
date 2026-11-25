@@ -127,6 +127,74 @@
   };
   UI.clearSave = function () { try { localStorage.removeItem(KEY); } catch (e) { } };
 
+  /* ------------------------------------------------- 左右分栏宽度拖拽 */
+  var SPLIT_KEY = 'ft-split-v1', SPLIT_DEF = 300, SPLIT_MIN = 190, curW = SPLIT_DEF;
+
+  function splitAvail() {
+    var g = document.querySelector('.lab-grid, .sys-grid, .mod-grid');
+    var left = g ? g.getBoundingClientRect().left : 0;
+    return Math.max(160, window.innerWidth - left - 13);
+  }
+  /* 手机这类超窄屏也要保持左右，所以下限按比例而不是死值；上限保证波形不被挤没 */
+  function splitMin() { return Math.round(Math.min(SPLIT_MIN, Math.max(140, splitAvail() * 0.34))); }
+  function splitMax() {
+    var a = splitAvail();
+    return Math.max(splitMin(), Math.min(760, a - Math.min(380, a * 0.55)));
+  }
+
+  function applySplit(w) {
+    curW = Math.round(Math.max(splitMin(), Math.min(splitMax(), w)));
+    document.documentElement.style.setProperty('--side-w', curW + 'px');
+    [].slice.call(document.querySelectorAll('.col-split')).forEach(function (e) {
+      e.setAttribute('aria-valuenow', curW);
+      e.setAttribute('aria-valuemin', splitMin());
+      e.setAttribute('aria-valuemax', Math.round(splitMax()));
+    });
+    return curW;
+  }
+
+  UI.initSplits = function () {
+    var v = NaN;
+    try { v = parseInt(localStorage.getItem(SPLIT_KEY), 10); } catch (e) { }
+    applySplit(isFinite(v) && v > 0 ? v : SPLIT_DEF);
+
+    [].slice.call(document.querySelectorAll('.col-split')).forEach(function (bar) {
+      var startX = 0, base = 0;
+      bar.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        startX = e.clientX; base = curW;
+        bar.classList.add('on');
+        document.body.style.userSelect = 'none';
+        try { bar.setPointerCapture(e.pointerId); } catch (err) { }
+      });
+      bar.addEventListener('pointermove', function (e) {
+        if (bar.classList.contains('on')) applySplit(base + (e.clientX - startX));
+      });
+      function end(e) {
+        if (!bar.classList.contains('on')) return;
+        bar.classList.remove('on');
+        document.body.style.userSelect = '';
+        try { bar.releasePointerCapture(e.pointerId); } catch (err) { }
+        UI.saveSplit(curW);
+        window.dispatchEvent(new Event('resize'));
+      }
+      bar.addEventListener('pointerup', end);
+      bar.addEventListener('pointercancel', end);
+      bar.addEventListener('dblclick', function () { UI.saveSplit(applySplit(SPLIT_DEF)); });
+      bar.addEventListener('keydown', function (e) {
+        var step = e.shiftKey ? 64 : 24, hit = true;
+        if (e.key === 'ArrowLeft') applySplit(curW - step);
+        else if (e.key === 'ArrowRight') applySplit(curW + step);
+        else if (e.key === 'Home' || e.key === 'Enter') applySplit(SPLIT_DEF);
+        else hit = false;
+        if (hit) { e.preventDefault(); UI.saveSplit(curW); }
+      });
+    });
+
+    window.addEventListener('resize', function () { applySplit(curW); });
+  };
+  UI.saveSplit = function (w) { try { localStorage.setItem(SPLIT_KEY, String(w)); } catch (e) { } };
+
   /* --------------------------------------------------- 复数格式化 */
   UI.cplx = function (re, im, d) {
     var s = UI.trim(re);

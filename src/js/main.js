@@ -39,6 +39,8 @@
       '<li><b>变换对</b>：表 4.2 速查，带实时缩略图。点信号名即可在实验台打开。</li>',
       '<li><b>系统频响</b>：选一个输入信号 + 一个系统（理想低通、RC、自定义有理式……），看 |H|、φ_H、x(t)/y(t)、|X|/|Y|。两个预设分别是课件例 4.1.1 和课堂测试。</li>',
       '</ul>',
+      '<h4>左右排版</h4>',
+      '<p>页面始终是「左控制面板 · 右波形」两栏，不会因屏幕小或缩放变成上下结构。中间那条竖线可以左右拖动来分配宽度，<b>双击复位</b>；点住它后用 <code class="kbd">← →</code>（按住 Shift 步长 64px）也能调。宽度会记住，下次打开还是你习惯的比例。</p>',
       '<h4>自定义信号</h4>',
       '<p>点「自定义 x(t)」打开抽屉，输入表达式（如 <code class="kbd">exp(-3*t)*u(t)</code> 或 <code class="kbd">rect(t/2)</code>），工具会用数值积分算出它的频谱。支持 <code class="kbd">sin cos exp abs sqrt sign u step rect gate sa sinc tri</code> 等函数和参数 <code class="kbd">a b c w0 T</code>。</p>',
       '<h4>数值说明</h4>',
@@ -160,6 +162,7 @@
 
   /* -------------------------------------------------------- 启动 */
   window.addEventListener('DOMContentLoaded', function () {
+    UI.initSplits();
     FT.Lab.init();
   });
 
